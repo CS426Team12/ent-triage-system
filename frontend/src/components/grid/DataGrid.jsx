@@ -10,7 +10,13 @@ import { TABLE_COLORS } from "../../theme";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const DataGrid = ({ rowData, columnDefs, gridOptions = {}, loading = false }) => {
+const DataGrid = ({
+  rowData,
+  columnDefs,
+  gridOptions = {},
+  loading = false,
+  quickFilterText = "",
+}) => {
   const theme = themeQuartz.withParams({
     headerBackgroundColor: TABLE_COLORS.headerBackground,
     backgroundColor: TABLE_COLORS.background,
@@ -26,6 +32,7 @@ const DataGrid = ({ rowData, columnDefs, gridOptions = {}, loading = false }) =>
       tooltipShowDelay={0}
       enableCellTextSelection={true}
       loading={loading}
+      quickFilterText={quickFilterText}
       {...gridOptions}
     />
   );

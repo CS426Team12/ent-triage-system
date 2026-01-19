@@ -1,7 +1,7 @@
 import React from "react";
 import { Grid, Typography, Box, Paper, Stack, Tabs, Tab } from "@mui/material";
 import { Assessment } from "@mui/icons-material";
-import DataGrid from "../components/grid/DataGrid";
+import SearchableDataGrid from "../components/grid/SearchableDataGrid";
 import mockData from "../../mockData/triageCaseMockData.json";
 import { triageCaseColumnDefs } from "../utils/coldefs/triageCase";
 import Navbar from "../components/Navbar";
@@ -20,13 +20,13 @@ export default function Dashboard() {
   React.useEffect(() => {
     const getCases = async () => {
       console.log("Fetching cases");
-      setLoading(true)
+      setLoading(true);
       try {
         await fetchCases();
       } catch (err) {
         console.error("Failed to fetch cases", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     };
     if (cases.length === 0) {
@@ -55,8 +55,7 @@ export default function Dashboard() {
                 borderColor: "divider",
                 borderRadius: 2,
                 overflow: "hidden",
-              }}
-            >
+              }}>
               <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Box
@@ -68,15 +67,13 @@ export default function Dashboard() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                    }}
-                  >
+                    }}>
                     <Assessment sx={{ fontSize: 24, color: "white" }} />
                   </Box>
                   <Typography
                     variant="h5"
                     color="text.primary"
-                    sx={{ fontWeight: 600 }}
-                  >
+                    sx={{ fontWeight: 600 }}>
                     Dashboard
                   </Typography>
                 </Stack>
@@ -88,8 +85,7 @@ export default function Dashboard() {
                   borderBottom: 1,
                   borderColor: "divider",
                   bgcolor: "background.paper",
-                }}
-              >
+                }}>
                 <Tab
                   label={`Unresolved Cases (${unresolvedCases?.length || 0})`}
                   sx={{ textTransform: "none", fontWeight: 500 }}
@@ -101,14 +97,14 @@ export default function Dashboard() {
               </Tabs>
               <Box sx={{ height: "70vh", p: 2 }}>
                 {activeTab === 0 && (
-                  <DataGrid
+                  <SearchableDataGrid
                     rowData={unresolvedCases || []}
                     columnDefs={triageCaseColumnDefs}
                     loading={loading}
                   />
                 )}
                 {activeTab === 1 && (
-                  <DataGrid
+                  <SearchableDataGrid
                     rowData={resolvedCases || []}
                     columnDefs={triageCaseColumnDefs}
                     loading={loading}
