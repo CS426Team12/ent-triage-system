@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
 import { Grid, Typography, Box, Paper, Stack, Button } from "@mui/material";
 import { SupervisorAccount } from "@mui/icons-material";
-import DataGrid from "../components/grid/DataGrid";
+import SearchableDataGrid from "../components/grid/SearchableDataGrid";
 import { userColumnDefs } from "../utils/coldefs/user";
 import CreateUserDialog from "../components/admin/CreateUserDialog";
 import { userService } from "../api/userService";
@@ -85,7 +85,7 @@ export default function AdminPortal() {
                 </Stack>
               </Box>
               <Box sx={{ height: "76vh", p: 2 }}>
-                <DataGrid
+                <SearchableDataGrid
                   loading={loading}
                   rowData={users}
                   columnDefs={userColumnDefs(fetchUsers)}
