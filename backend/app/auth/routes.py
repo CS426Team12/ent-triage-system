@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
-from app.core.security import (verify_password, create_access_token, create_refresh_token)
-from app.auth.schemas import LoginRequest, UserResponse, Token
-from app.auth.dependencies import get_current_user
+from app.core.security import (hash_password, verify_password, create_access_token, create_refresh_token, EmailTokenType, create_email_token)
+from app.auth.schemas import LoginRequest, UserResponse, Token, ForgotPasswordRequest, SetPasswordRequest
+from app.auth.dependencies import (get_current_user, verify_email_token)
 from app.models import User
 from app.core.dependencies import get_db
 from sqlmodel import Session, select
@@ -20,6 +20,10 @@ def login(response: Response, data: LoginRequest, db: Session = Depends(get_db))
 
     if not user or not verify_password(data.password, user.passwordHash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    #check if user is active
+    if not user.isActive:
+        raise HTTPException(status_code=403, detail="User account is not active")
 
     access_token = create_access_token({"sub": str(user.userID), "role": user.role})
     refresh_token = create_refresh_token({"sub": str(user.userID)})
@@ -81,6 +85,54 @@ def get_current_user_info(user: User = Depends(get_current_user)):
         "lastName": user.lastName,
         "first_initial": user.firstName[0].upper() if user.firstName else ""
     }
+
+
+@router.post("/forgot-password")
+def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    user = db.exec(select(User).where(User.email == request.email)).first()
+    if not user:
+        return {"message": "If the email exists, a reset link has been sent."}
+    token = create_email_token({"sub": str(user.userID)}, EmailTokenType.FORGOT_PASSWORD)
+    user_email = request.email
+    #send email with token link
+    # TODO: (Email sending logic would go here)
+    return {"message": "If the email exists, a reset link has been sent.", "token": token}
+
+@router.post("/set-password") # set new password for both registration and forgot password
+def set_password(request: SetPasswordRequest, db: Session = Depends(get_db)):
+    # Try to verify as either token type
+    payload = None
+    for token_type in [EmailTokenType.FORGOT_PASSWORD, EmailTokenType.REGISTER]:
+        try:
+            payload = verify_email_token(request.token, token_type)
+            break
+        except HTTPException:
+            continue
+    
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    user_id = payload.get("sub")
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update password and activate if new user
+    user.passwordHash = hash_password(request.new_password)
+    if not user.isActive:
+        user.isActive = True
+    
+    db.add(user)
+    db.commit()
+    return {"message": "Password has been set successfully."}
+
+@router.get("/verify-token/{token}")
+def verify_token(token: str, token_type: EmailTokenType = EmailTokenType.FORGOT_PASSWORD):
+    try:
+        verify_email_token(token, token_type)
+        return True
+    except HTTPException:
+        return False
 
 
 

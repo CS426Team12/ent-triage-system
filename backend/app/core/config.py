@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     DB_HOST: str
     DB_PORT: str = "5432"
     DB_NAME: str
+
+    EMAIL_TOKEN_SECRET: str = "email-token-secret"
+    FORGOT_PASSWORD_TOKEN_EXPIRE_HOURS: int = 2
+    REGISTER_TOKEN_EXPIRE_HOURS: int = 48
+    
     
     @property
     def SQLALCHEMY_DATABASE_URL(self) -> str:

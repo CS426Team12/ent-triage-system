@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 from app.core.dependencies import get_db
 from app.auth.dependencies import get_current_user
 from app.models.models import User, UserPublic, UserCreate, UserUpdate, UsersList
-
+from app.core.security import create_email_token, EmailTokenType
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -41,13 +41,13 @@ def get_user(user_id: str, db: Session = Depends(get_db), current_user: User = D
 def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
 	if current_user.role.lower() != "admin":
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
-	# TODO: hash or generate password, send invitation email
 	new_user = User(
 		firstName=payload.firstName,
 		lastName=payload.lastName,
 		email=payload.email,
 		role=payload.role.lower(),
 		passwordHash="",
+		isActive=False
 	)
 	existing = db.exec(select(User).where(User.email == payload.email)).first()
 	if existing:
@@ -55,6 +55,12 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user
 	db.add(new_user)
 	db.commit()
 	db.refresh(new_user)
+	# Generate and send password setup token
+	token = create_email_token(
+		{"sub": str(new_user.userID), "email": new_user.email},
+        EmailTokenType.REGISTER
+    )
+    # TODO: (Send email with token link)
 	return new_user
 
 

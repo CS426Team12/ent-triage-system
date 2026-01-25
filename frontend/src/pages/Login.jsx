@@ -28,6 +28,7 @@ export default function Login() {
   const handleClickShowPassword = () => setShowPassword(!showPassword);
 
   const handleForgotPassword = () => {
+    navigate("/forgot-password");
     console.log("Forgot Password clicked");
   };
 

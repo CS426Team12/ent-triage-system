@@ -16,5 +16,9 @@ class UserResponse(SQLModel):
     lastName: str
     first_initial: str
 
+class ForgotPasswordRequest(SQLModel):
+    email: str
 
-    
+class SetPasswordRequest(SQLModel):
+    token: str
+    new_password: str
