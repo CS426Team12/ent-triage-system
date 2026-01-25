@@ -33,6 +33,7 @@ const DataGrid = ({
       enableCellTextSelection={true}
       loading={loading}
       quickFilterText={quickFilterText}
+      pagination={true}
       {...gridOptions}
     />
   );
