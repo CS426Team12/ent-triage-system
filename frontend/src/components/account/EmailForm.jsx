@@ -10,7 +10,7 @@ import {
   Button,
 } from "@mui/material";
 import { deepPurple } from "@mui/material/colors";
-// import api from "../api"; // your axios wrapper
+import apiClient from "../../api/axios";
 
 export default function EmailForm() {
   const [submitted, setSubmitted] = useState(false);
@@ -23,9 +23,16 @@ export default function EmailForm() {
         .required("Email is required"),
     }),
     onSubmit: async (values, { setSubmitting }) => {
-      //   await api.post("/auth/forgot-password", values);
-      setSubmitting(false);
       setSubmitted(true);
+      try {
+        await apiClient.post("/auth/forgot-password", {
+          email: values.email,
+        });
+      } catch {
+        console.error(err);
+      } finally {
+        setSubmitting(false);
+      }
     },
   });
 
