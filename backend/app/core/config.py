@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     EMAIL_TOKEN_SECRET: str = "email-token-secret"
     FORGOT_PASSWORD_TOKEN_EXPIRE_HOURS: int = 2
     REGISTER_TOKEN_EXPIRE_HOURS: int = 48
+    SET_PASSWORD_URL: str
+    
+    RESEND_API_KEY: str
+    TEST_EMAIL_RECIPIENT: str
+    TEST_EMAIL_SENDER: str
     
     
     @property

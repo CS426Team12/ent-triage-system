@@ -9,9 +9,11 @@ from datetime import timedelta
 from app.core.redis import redis_client as redis
 from app.core.config import settings
 from jose import jwt
+from app.auth.helpers.mailer import send_token_email
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 REFRESH_COOKIE_NAME = "refresh_token"
+SET_PASSWORD_URL = str(settings.SET_PASSWORD_URL) 
 
 # Login route
 @router.post("/login", response_model=Token)
@@ -86,17 +88,21 @@ def get_current_user_info(user: User = Depends(get_current_user)):
         "first_initial": user.firstName[0].upper() if user.firstName else ""
     }
 
-
 @router.post("/forgot-password")
 def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = db.exec(select(User).where(User.email == request.email)).first()
     if not user:
         return {"message": "If the email exists, a reset link has been sent."}
-    token = create_email_token({"sub": str(user.userID)}, EmailTokenType.FORGOT_PASSWORD)
-    user_email = request.email
-    #send email with token link
-    # TODO: (Email sending logic would go here)
-    return {"message": "If the email exists, a reset link has been sent.", "token": token}
+    
+    send_token_email(
+        user_email=user.email,
+        user_id=str(user.userID),
+        token_type=EmailTokenType.FORGOT_PASSWORD,
+        template_name="forgot-password",
+        base_url=str(settings.SET_PASSWORD_URL)
+    )
+    
+    return {"message": "If the email exists, a reset link has been sent."}
 
 @router.post("/set-password") # set new password for both registration and forgot password
 def set_password(request: SetPasswordRequest, db: Session = Depends(get_db)):

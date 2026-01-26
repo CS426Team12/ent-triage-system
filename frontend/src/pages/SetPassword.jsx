@@ -4,8 +4,11 @@ import PasswordForm from "../components/account/PasswordForm";
 // import api from "../api";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 export default function SetPassword() {
+  const [params] = useSearchParams();
+  const token = params.get("token");
   const navigate = useNavigate();
 
   const [success, setSuccess] = useState(false);

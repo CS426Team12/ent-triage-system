@@ -1,14 +1,16 @@
-from typing import List
-
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlmodel import Session, select
 
+from app.core.config import settings
 from app.core.dependencies import get_db
 from app.auth.dependencies import get_current_user
 from app.models.models import User, UserPublic, UserCreate, UserUpdate, UsersList
-from app.core.security import create_email_token, EmailTokenType
+from app.core.security import EmailTokenType
+from app.auth.helpers.mailer import send_token_email
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+SET_PASSWORD_URL = str(settings.SET_PASSWORD_URL) 
 
 
 @router.get("/", response_model=UsersList)
@@ -55,12 +57,13 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user
 	db.add(new_user)
 	db.commit()
 	db.refresh(new_user)
-	# Generate and send password setup token
-	token = create_email_token(
-		{"sub": str(new_user.userID), "email": new_user.email},
-        EmailTokenType.REGISTER
-    )
-    # TODO: (Send email with token link)
+	send_token_email(
+			user_email=new_user.email,
+			user_id=str(new_user.userID),
+			token_type=EmailTokenType.REGISTER,
+			template_name="create-password",
+			base_url=str(settings.SET_PASSWORD_URL)
+	)
 	return new_user
 
 
