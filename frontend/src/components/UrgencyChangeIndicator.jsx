@@ -13,6 +13,7 @@ export const UrgencyChangeIndicator = ({ initialUrgency, currentUrgency, overrid
 
   return (
     <Tooltip 
+      placement="right"
       title={`Urgency updated from ${initialUrgency.toUpperCase()} to ${currentUrgency.toUpperCase()}${overrideByDisplay}`}
     >
       <span style={{ display: 'inline-flex', alignItems: 'center'}}>
