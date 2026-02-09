@@ -9,13 +9,13 @@ export const URGENCY_VALUES = {
 
 // this should reflect how these enums are stored in db
 export const STATUS_VALUES = {
-  PENDING: "pending",
-  RESOLVED: "resolved",
+  UNREVIEWED: "unreviewed",
+  REVIEWED: "reviewed",
 };
 
 export const STATUS_LABELS = {
   [STATUS_VALUES.PENDING]: "Pending",
-  [STATUS_VALUES.RESOLVED]: "Resolved",
+  [STATUS_VALUES.REVIEWED]: "Reviewed",
 };
 
 export const URGENCY_LABELS = {

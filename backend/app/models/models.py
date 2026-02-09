@@ -87,7 +87,7 @@ class TriageCaseBase(SQLModel):
     AISummary: Optional[str] = None
     status: str = "pending"
     AIUrgency: Optional[str] = None
-    clinicianSummary: Optional[str] = None
+    clinicianNotes: Optional[str] = None
     overrideSummary: Optional[str] = None
     overrideUrgency: Optional[str] = None
 
@@ -99,9 +99,9 @@ class TriageCase(TriageCaseBase, table=True):
     patientID: uuid.UUID = Field(foreign_key="ent.Patient.patientID")
     dateCreated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     createdBy: Optional[uuid.UUID] = None
-    resolutionReason: Optional[str] = None
-    resolutionTimestamp: Optional[datetime] = None
-    resolvedBy: Optional[uuid.UUID] = None
+    reviewReason: Optional[str] = None
+    reviewTimestamp: Optional[datetime] = None
+    reviewedBy: Optional[uuid.UUID] = None
 
 class TriageCaseCreate(SQLModel):
     patientID: uuid.UUID
@@ -115,8 +115,8 @@ class TriageCaseUpdate(SQLModel):
     status: Optional[str] = None
     overrideSummary: Optional[str] = None
     overrideUrgency: Optional[str] = None
-    clinicianSummary: Optional[str] = None
-    resolutionReason: Optional[str] = None
+    clinicianNotes: Optional[str] = None
+    reviewReason: Optional[str] = None
     firstName: Optional[str] = None
     lastName: Optional[str] = None
     DOB: Optional[date] = None
@@ -126,18 +126,18 @@ class TriageCaseUpdate(SQLModel):
     languagePreference: Optional[str] = None
     verified: Optional[bool] = None
 
-class TriageCaseResolve(SQLModel):
-    resolutionReason: str
+class TriageCaseReview(SQLModel):
+    reviewReason: str
 
 class TriageCasePublic(TriageCaseBase, PatientBase):
     caseID: uuid.UUID
     patientID: uuid.UUID
     dateCreated: datetime
     createdBy: Optional[uuid.UUID] = None
-    resolutionReason: Optional[str] = None
-    resolutionTimestamp: Optional[datetime] = None
-    resolvedBy: Optional[uuid.UUID] = None
-    resolvedByEmail: Optional[str] = None
+    reviewReason: Optional[str] = None
+    reviewTimestamp: Optional[datetime] = None
+    reviewedBy: Optional[uuid.UUID] = None
+    reviewedByEmail: Optional[str] = None
 
 class TriageCasesPublic(SQLModel):
     cases: list[TriageCasePublic] 

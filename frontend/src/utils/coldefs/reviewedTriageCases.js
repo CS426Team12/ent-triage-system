@@ -2,11 +2,11 @@ import {
   UrgencyCellRenderer,
   urgencyComparator,
   dateTimeFormatter,
-  ageValueGetter,
   EditCaseButtonCellRenderer,
+  concatNameValueGetter,
 } from '../gridUtils';
 
-export const triageCaseColumnDefs = [
+export const reviewedColDefs = [
   {
     headerName: 'Urgency',
     flex: 1, // flex determines the proportion the column will take up
@@ -20,46 +20,39 @@ export const triageCaseColumnDefs = [
     }
   },
   {
-    headerName: 'First Name',
-    field: 'firstName',
+    headerName: 'Name',
+    colId: 'name',
     flex: 0.75,
     minWidth: 150,
     filter: 'agTextColumnFilter',
+    valueGetter: (params) => {
+      return concatNameValueGetter(params.data.firstName, params.data.lastName);
+    }
   },
   {
-    headerName: 'Last Name',
-    field: 'lastName',
-    flex: 0.75,
-    minWidth: 150,
+    headerName: 'Review Reason',
+    flex: 6,
+    minWidth: 300,
+    tooltipValueGetter: (params) => {
+      return params.data.reviewReason;
+    },
     filter: 'agTextColumnFilter',
+    field: "reviewReason",
   },
   {
-    headerName: 'Age',
-    field: 'DOB',
-    flex: 0.5,
-    minWidth: 100,
-    filter: 'agNumberColumnFilter',
-    valueGetter: (params) => ageValueGetter(params.data?.DOB),
-  },
-  {
-    headerName: 'Date',
-    field: 'dateCreated',
+    headerName: 'Reviewed At',
+    field: 'reviewTimestamp',
     flex: 0.75,
     minWidth: 200,
     valueFormatter: dateTimeFormatter,
     filter: 'agDateColumnFilter',
   },
   {
-    headerName: 'Summary',
-    flex: 6,
-    minWidth: 300,
-    tooltipValueGetter: (params) => {
-      return params.data.overrideSummary || params.data.AISummary;
-    },
+    headerName: 'Reviewed By',
+    field: 'reviewedByEmail',
+    flex: 0.75,
+    minWidth: 200,
     filter: 'agTextColumnFilter',
-    valueGetter: (params) => {
-      return params.data.overrideSummary || params.data.AISummary;
-    }
   },
   {
     headerName: 'Edit',

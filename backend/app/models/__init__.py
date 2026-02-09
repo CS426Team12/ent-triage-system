@@ -8,7 +8,7 @@ from .models import (
   TriageCase,
   TriageCaseCreate,
   TriageCaseUpdate,
-  TriageCaseResolve,
+  TriageCaseReview,
   TriageCasePublic,
   TriageCasesPublic,
 )

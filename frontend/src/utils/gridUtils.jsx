@@ -1,5 +1,5 @@
 import React from "react";
-import { Chip, IconButton } from "@mui/material";
+import { Chip, IconButton, Box } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { URGENCY_PRIORITY, URGENCY_LABELS } from "../utils/consts";
@@ -9,6 +9,7 @@ import EditUserDialog from "../components/admin/EditUserDialog";
 import { useTriageCases } from "../context/TriageCaseContext";
 import { userService } from "../api/userService";
 import { toast } from "../utils/toast";
+import { UrgencyChangeIndicator } from "../components/UrgencyChangeIndicator";
 
 export const UrgencyCellRenderer = (params) => {
   if (!params.value) return null;
@@ -32,7 +33,7 @@ export const UrgencyCellRenderer = (params) => {
 
 export const EditCaseButtonCellRenderer = (params) => {
   const [open, setOpen] = React.useState(false);
-  const { updateCase, resolveCase } = useTriageCases();
+  const { updateCase, reviewCase } = useTriageCases();
   const caseData = params.data;
 
   const handleOpen = () => {
@@ -46,17 +47,17 @@ export const EditCaseButtonCellRenderer = (params) => {
   const handleSave = async (updatedData) => {
     if (Object.keys(updatedData).length === 0) return;
     console.log(updatedData)
-    const isResolving = Boolean(updatedData.resolutionReason);
+    const isReviewing = Boolean(updatedData.reviewReason);
     try {
-      if (isResolving) {
-        await resolveCase(caseData.caseID, {
-          resolutionReason: updatedData.resolutionReason,
+      if (isReviewing) {
+        await reviewCase(caseData.caseID, {
+          reviewReason: updatedData.reviewReason,
         });
       } else {
         await updateCase(caseData.caseID, updatedData);
       }
       toast.success(
-        `Successfully ${isResolving ? "resolved" : "updated"} case`
+        `Successfully ${isReviewing ? "reviewed" : "updated"} case`
       );
     } catch (err) {
       toast.error("Failed to update case.");
@@ -125,9 +126,25 @@ export const EditUserButtonCellRenderer = (params) => {
   );
 };
 
+export const UrgencyChangeCellRenderer = (params) => {
+  const { AIUrgency, overrideUrgency } = params.data;
+  const currentUrgency = overrideUrgency || AIUrgency;
+
+  return (
+    <UrgencyChangeIndicator
+      initialUrgency={AIUrgency}
+      currentUrgency={currentUrgency}
+    />
+  );
+};
+
 export const ageValueGetter = (dob) => {
   if (!dob) return null;
   return dayjs().diff(dayjs(dob), "year");
+};
+
+export const concatNameValueGetter = (firstName, lastName) => {
+  return `${firstName || ""} ${lastName || ""}`.trim();
 };
 
 export const dateTimeFormatter = (params) => {

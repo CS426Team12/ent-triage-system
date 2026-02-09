@@ -14,26 +14,26 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "../../context/AuthContext";
-export default function ResolveCaseDialog({ open, onClose, onResolve }) {
+export default function ReviewCaseDialog({ open, onClose, onReview }) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = React.useState(false);
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      resolutionReason: "",
-      resolvedBy: user.email,
+      reviewReason: "",
+      reviewedBy: user.email,
     },
     validationSchema: Yup.object({
-      resolutionReason: Yup.string().required("Resolution reason is required"),
+      reviewReason: Yup.string().required("Review reason is required"),
     }),
     onSubmit: async (values) => {
       setSubmitting(true);
-      await onResolve({
-        resolutionReason: values.resolutionReason, // api will autofill resolvedBy field
+      await onReview({
+        reviewReason: values.reviewReason, // api will autofill reviewedBy field
       });
       setSubmitting(false);
       formik.resetForm();
-      console.log("Resolution Details: ", values);
+      console.log("Review Details: ", values);
     },
   });
 
@@ -46,7 +46,7 @@ export default function ResolveCaseDialog({ open, onClose, onResolve }) {
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Typography sx={{ fontWeight: 600 }}>
-          Please Enter Resolution Details
+          Please Enter Review Details
         </Typography>
       </DialogTitle>
       <Divider />
@@ -57,19 +57,19 @@ export default function ResolveCaseDialog({ open, onClose, onResolve }) {
               fullWidth
               multiline
               rows={4}
-              name="resolutionReason"
-              label="Resolution Reason"
-              placeholder="Describe the resolution..."
-              value={formik.values.resolutionReason}
+              name="reviewReason"
+              label="Review Reason"
+              placeholder="Describe the review..."
+              value={formik.values.reviewReason}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={Boolean(
-                formik.touched.resolutionReason &&
-                  formik.errors.resolutionReason
+                formik.touched.reviewReason &&
+                  formik.errors.reviewReason
               )}
               helperText={
-                formik.touched.resolutionReason &&
-                formik.errors.resolutionReason
+                formik.touched.reviewReason &&
+                formik.errors.reviewReason
               }
             />
             <Box>
@@ -78,7 +78,7 @@ export default function ResolveCaseDialog({ open, onClose, onResolve }) {
                 color="text.secondary"
                 sx={{ fontWeight: 500 }}
               >
-                Resolved By
+                Reviewed By
               </Typography>
               <Typography variant="body1" color="text.primary">
                 {user.email}
@@ -89,7 +89,7 @@ export default function ResolveCaseDialog({ open, onClose, onResolve }) {
       </DialogContent>
       <DialogActions sx={{ p: 2, gap: 1 }}>
         <Button disabled={submitting} onClick={formik.handleSubmit} variant="contained">
-          Resolve
+          Review
         </Button>
         <Button onClick={handleClose}>Cancel</Button>
       </DialogActions>
