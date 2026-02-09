@@ -13,6 +13,7 @@ import {
   Typography,
   Divider,
 } from "@mui/material";
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
 import ReviewCaseDialog from "./ReviewCaseDialog";
@@ -56,6 +57,7 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
       clinicianNotes: formData.clinicianNotes || "",
       reviewReason: formData.reviewReason || "",
       reviewedByEmail: formData.reviewedByEmail || "",
+      scheduledDate: formData.scheduledDate || "",
     },
     validationSchema: Yup.object({
       firstName: Yup.string().required("Name is required"),
@@ -74,6 +76,7 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
         is: STATUS_VALUES.REVIEWED,
         then: (schema) => schema.required("Reviewed by is required"),
       }),
+      scheduledDate: Yup.date(),
     }),
     onSubmit: async (values) => {
       const changedValues = getChangedFields(formik.initialValues, values);
@@ -248,12 +251,37 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
                     fieldName="reviewedByEmail"
                     label="Reviewed By"
                   />
-                  <RenderTextField
-                    editMode={false}
-                    formik={formik}
-                    fieldName="scheduledDate"
-                    label="Scheduled Date"
-                  />
+                  {editMode ? (
+                    <DateTimePicker
+                      label="Scheduled Date"
+                      value={
+                        formik.values.scheduledDate
+                          ? dayjs(formik.values.scheduledDate)
+                          : null
+                      }
+                      onChange={(newValue) => {
+                        formik.setFieldValue(
+                          "scheduledDate",
+                          newValue ? newValue : null,
+                        );
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          name: "scheduledDate",
+                          onBlur: formik.handleBlur,
+                        },
+                      }}
+                    />
+                  ) : (
+                    <RenderTextField
+                      editMode={false}
+                      formik={formik}
+                      fieldName="scheduledDate"
+                      label="Scheduled Date"
+                      type="datetime-local"
+                    />
+                  )}
                 </Box>
               )}
             </Box>

@@ -128,6 +128,7 @@ class TriageCaseUpdate(SQLModel):
     returningPatient: Optional[bool] = None
     languagePreference: Optional[str] = None
     verified: Optional[bool] = None
+    scheduledDate: Optional[datetime] = None
 
 class TriageCaseReview(SQLModel):
     reviewReason: str

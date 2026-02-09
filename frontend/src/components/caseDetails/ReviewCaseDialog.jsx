@@ -37,7 +37,7 @@ export default function ReviewCaseDialog({ open, onClose, onReview }) {
         reviewReason: values.reviewReason,
       };
       if (values.scheduledDate) {
-        payload.scheduledDate = new Date(values.scheduledDate).toISOString();
+        payload.scheduledDate = new Date(values.scheduledDate);
       }
       await onReview(payload);
       setSubmitting(false);
@@ -89,7 +89,7 @@ export default function ReviewCaseDialog({ open, onClose, onReview }) {
               onChange={(newValue) => {
                 formik.setFieldValue(
                   "scheduledDate",
-                  newValue ? newValue.toISOString() : null,
+                  newValue ? newValue : null,
                 );
               }}
               slotProps={{

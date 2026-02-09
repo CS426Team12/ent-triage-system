@@ -151,7 +151,7 @@ export const concatNameValueGetter = (firstName, lastName) => {
 
 export const dateTimeFormatter = (params) => {
   if (!params.value) return "-";
-  return dayjs(params.value).format("h:mm A, MM/DD/YYYY");
+  return dayjs(params.value).format("MM/DD/YYYY, h:mm A");
 };
 
 export const urgencyComparator = (a, b) => {
