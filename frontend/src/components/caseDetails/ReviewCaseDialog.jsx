@@ -80,7 +80,7 @@ export default function ReviewCaseDialog({ open, onClose, onReview }) {
               }
             />
             <DateTimePicker
-              label="Scheduled Follow-up"
+              label="Scheduled Date"
               value={
                 formik.values.scheduledDate
                   ? dayjs(formik.values.scheduledDate)
