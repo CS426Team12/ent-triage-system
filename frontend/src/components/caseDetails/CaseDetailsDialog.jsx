@@ -24,6 +24,7 @@ import {
 } from "../../utils/consts";
 import { getChangedFields } from "../../utils/utils"
 import dayjs from "dayjs";
+import { UrgencyChangeIndicator } from "../UrgencyChangeIndicator";
 
 export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
   const [formData, setFormData] = useState({});
@@ -102,9 +103,7 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
     <>
       <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
         <DialogTitle>
-          <Typography sx={{ fontWeight: 600 }}>
-            Case Details
-          </Typography>
+          <Typography sx={{ fontWeight: 600 }}>Case Details</Typography>
         </DialogTitle>
         <Divider />
         <DialogContent>
@@ -169,11 +168,31 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
               </Typography>
               <Box>
                 <Box mb={2}>
+                  <Box
+                    display="flex"
+                    flexDirection="row"
+                    alignItems="center"
+                  >
+                    <Typography
+                      variant="subtitle2"
+                      color="textSecondary"
+                      sx={{ fontWeight: 500 }}
+                    >
+                      Case Urgency
+                    </Typography>
+                    <UrgencyChangeIndicator
+                      initialUrgency={caseData.AIUrgency}
+                      currentUrgency={
+                        caseData.overrideUrgency || caseData.AIUrgency
+                      }
+                      overrideBy={caseData.overrideUrgencyByEmail}
+                    />
+                  </Box>
                   <RenderSelectField
                     editMode={editMode}
                     formik={formik}
                     fieldName="overrideUrgency"
-                    label="Case Urgency"
+                    label=""
                     options={Object.values(URGENCY_VALUES).map((v) => ({
                       value: v,
                       label: URGENCY_LABELS[v],
@@ -201,7 +220,7 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
                   editMode={editMode}
                   formik={formik}
                   fieldName="overrideSummary"
-                  label="Override Summary"
+                  label={`Override Summary (by ${caseData.overrideSummaryByEmail || "N/A"})`}
                 />
               ) : (
                 <Button onClick={() => setEditMode(true)}>
@@ -217,7 +236,9 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
 
               {caseData?.status === STATUS_VALUES.REVIEWED && (
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <Typography variant="h8" sx={{ fontWeight: 600 }}>Review Information</Typography>
+                  <Typography variant="h8" sx={{ fontWeight: 600 }}>
+                    Review Information
+                  </Typography>
                   <RenderTextField
                     editMode={false}
                     formik={formik}
@@ -238,7 +259,11 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
         <DialogActions>
           {editMode ? (
             <>
-              <Button disabled={submitting} onClick={formik.handleSubmit} variant="contained">
+              <Button
+                disabled={submitting}
+                onClick={formik.handleSubmit}
+                variant="contained"
+              >
                 Save
               </Button>
               <Button
@@ -266,7 +291,7 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
       <ReviewCaseDialog
         open={reviewMode}
         onClose={() => setReviewMode(false)}
-        onResolve={(data) => {
+        onReview={(data) => {
           onSave({
             reviewReason: data.reviewReason,
             caseID: caseData.caseID,

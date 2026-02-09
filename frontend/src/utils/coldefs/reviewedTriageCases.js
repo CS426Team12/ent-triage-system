@@ -14,7 +14,6 @@ export const reviewedColDefs = [
     cellRenderer: UrgencyCellRenderer,
     filter: 'agTextColumnFilter',
     comparator: urgencyComparator,
-    sort: "asc",
     valueGetter: (params) => {
       return params.data.overrideUrgency || params.data.AIUrgency;
     }
@@ -40,19 +39,20 @@ export const reviewedColDefs = [
     field: "reviewReason",
   },
   {
-    headerName: 'Reviewed At',
-    field: 'reviewTimestamp',
-    flex: 0.75,
-    minWidth: 200,
-    valueFormatter: dateTimeFormatter,
-    filter: 'agDateColumnFilter',
-  },
-  {
     headerName: 'Reviewed By',
     field: 'reviewedByEmail',
     flex: 0.75,
     minWidth: 200,
     filter: 'agTextColumnFilter',
+  },
+    {
+    headerName: 'Reviewed At',
+    field: 'reviewTimestamp',
+    flex: 0.75,
+    minWidth: 200,
+    sort: "desc",
+    valueFormatter: dateTimeFormatter,
+    filter: 'agDateColumnFilter',
   },
   {
     headerName: 'Edit',

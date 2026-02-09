@@ -127,13 +127,14 @@ export const EditUserButtonCellRenderer = (params) => {
 };
 
 export const UrgencyChangeCellRenderer = (params) => {
-  const { AIUrgency, overrideUrgency } = params.data;
+  const { AIUrgency, overrideUrgency, overrideUrgencyByEmail } = params.data;
   const currentUrgency = overrideUrgency || AIUrgency;
 
   return (
     <UrgencyChangeIndicator
       initialUrgency={AIUrgency}
       currentUrgency={currentUrgency}
+      overrideBy={overrideUrgencyByEmail}
     />
   );
 };

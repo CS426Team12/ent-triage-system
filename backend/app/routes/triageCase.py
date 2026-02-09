@@ -31,6 +31,18 @@ def build_case_public(case: TriageCase, db: Session) -> TriageCasePublic:
         reviewer = db.get(User, case.reviewedBy)
         if reviewer:
             reviewed_by_email = reviewer.email
+    
+    override_summary_by_email = None
+    if case.overrideSummaryBy:
+        summary_override_user = db.get(User, case.overrideSummaryBy)
+        if summary_override_user:
+            override_summary_by_email = summary_override_user.email
+    
+    override_urgency_by_email = None
+    if case.overrideUrgencyBy:
+        urgency_override_user = db.get(User, case.overrideUrgencyBy)
+        if urgency_override_user:
+            override_urgency_by_email = urgency_override_user.email
             
     return TriageCasePublic(
         **case.model_dump(),
@@ -42,7 +54,9 @@ def build_case_public(case: TriageCase, db: Session) -> TriageCasePublic:
         returningPatient=patient.returningPatient,
         languagePreference=patient.languagePreference,
         verified=patient.verified,
-        reviewedByEmail=reviewed_by_email
+        reviewedByEmail=reviewed_by_email,
+        overrideSummaryByEmail=override_summary_by_email,
+        overrideUrgencyByEmail=override_urgency_by_email
     )
 
 def update_patient_info(
@@ -68,29 +82,10 @@ def get_all_cases(
     count_statement = select(func.count()).select_from(TriageCase)
     count = db.exec(count_statement).one()
     
-    statement = (
-        select(TriageCase, Patient, User.email)
-        .join(Patient)
-        .outerjoin(User, TriageCase.reviewedBy == User.userID)
-        .limit(limit)
-    )
-    results = db.exec(statement).all()
+    statement = select(TriageCase).limit(limit)
+    cases = db.exec(statement).all()
     
-    cases_public = [
-        TriageCasePublic(
-            **case.model_dump(),
-            firstName=patient.firstName,
-            lastName=patient.lastName,
-            DOB=patient.DOB,
-            contactInfo=patient.contactInfo,
-            insuranceInfo=patient.insuranceInfo,
-            returningPatient=patient.returningPatient,
-            languagePreference=patient.languagePreference,
-            verified=patient.verified,
-            reviewedByEmail=reviewer_email,
-        )
-        for case, patient, reviewer_email in results
-    ]
+    cases_public = [build_case_public(case, db) for case in cases]
 
     logger.info(f"GET /triage-cases/ - returned {count} cases")
     return TriageCasesPublic(cases=cases_public, count=count)
@@ -112,29 +107,13 @@ def get_cases_by_status(
     count = db.exec(count_statement).one()
     
     statement = (
-        select(TriageCase, Patient, User.email)
-        .join(Patient)
-        .outerjoin(User, TriageCase.reviewedBy == User.userID)
+        select(TriageCase)
         .where(TriageCase.status == status)
         .limit(limit)
     )
-    results = db.exec(statement).all()
+    cases = db.exec(statement).all()
     
-    cases_public = [
-        TriageCasePublic(
-            **case.model_dump(),
-            firstName=patient.firstName,
-            lastName=patient.lastName,
-            DOB=patient.DOB,
-            contactInfo=patient.contactInfo,
-            insuranceInfo=patient.insuranceInfo,
-            returningPatient=patient.returningPatient,
-            languagePreference=patient.languagePreference,
-            verified=patient.verified,
-            reviewedByEmail=reviewer_email,
-        )
-        for case, patient, reviewer_email in results
-    ]
+    cases_public = [build_case_public(case, db) for case in cases]
 
     return TriageCasesPublic(cases=cases_public, count=count)
 
@@ -203,6 +182,12 @@ def update_case(
         update_patient_info(patient, patient_updates, db)
     
     if case_updates:
+        # track which user made overrides
+        if 'overrideUrgency' in case_updates and case_updates['overrideUrgency']:
+            case.overrideUrgencyBy = current_user.userID
+        if 'overrideSummary' in case_updates and case_updates['overrideSummary']:
+            case.overrideSummaryBy = current_user.userID
+        
         case.sqlmodel_update(case_updates)
         db.add(case)
     
