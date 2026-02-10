@@ -2,11 +2,11 @@ import {
   UrgencyCellRenderer,
   urgencyComparator,
   dateTimeFormatter,
-  ageValueGetter,
   EditCaseButtonCellRenderer,
+  concatNameValueGetter,
 } from '../gridUtils';
 
-export const triageCaseColumnDefs = [
+export const reviewedColDefs = [
   {
     headerName: 'Urgency',
     flex: 1, // flex determines the proportion the column will take up
@@ -14,52 +14,53 @@ export const triageCaseColumnDefs = [
     cellRenderer: UrgencyCellRenderer,
     filter: 'agTextColumnFilter',
     comparator: urgencyComparator,
-    sort: "asc",
     valueGetter: (params) => {
       return params.data.overrideUrgency || params.data.AIUrgency;
     }
   },
   {
-    headerName: 'First Name',
-    field: 'firstName',
+    headerName: 'Name',
+    colId: 'name',
     flex: 0.75,
     minWidth: 150,
     filter: 'agTextColumnFilter',
+    valueGetter: (params) => {
+      return concatNameValueGetter(params.data.firstName, params.data.lastName);
+    }
   },
   {
-    headerName: 'Last Name',
-    field: 'lastName',
-    flex: 0.75,
-    minWidth: 150,
-    filter: 'agTextColumnFilter',
-  },
-  {
-    headerName: 'Age',
-    field: 'DOB',
-    flex: 0.5,
-    minWidth: 100,
-    filter: 'agNumberColumnFilter',
-    valueGetter: (params) => ageValueGetter(params.data?.DOB),
-  },
-  {
-    headerName: 'Date',
-    field: 'dateCreated',
+    headerName: 'Scheduled Date',
+    field: 'scheduledDate',
     flex: 0.75,
     minWidth: 200,
     valueFormatter: dateTimeFormatter,
     filter: 'agDateColumnFilter',
   },
   {
-    headerName: 'Summary',
+    headerName: 'Review Reason',
     flex: 6,
     minWidth: 300,
     tooltipValueGetter: (params) => {
-      return params.data.overrideSummary || params.data.AISummary;
+      return params.data.reviewReason;
     },
     filter: 'agTextColumnFilter',
-    valueGetter: (params) => {
-      return params.data.overrideSummary || params.data.AISummary;
-    }
+    field: "reviewReason",
+  },
+  {
+    headerName: 'Reviewed By',
+    field: 'reviewedByEmail',
+    flex: 0.75,
+    minWidth: 200,
+    filter: 'agTextColumnFilter',
+  },
+  {
+    headerName: 'Reviewed At',
+    field: 'reviewTimestamp',
+    flex: 0.75,
+    minWidth: 200,
+    sort: "desc",
+    valueFormatter: dateTimeFormatter,
+    filter: 'agDateColumnFilter',
   },
   {
     headerName: 'Edit',

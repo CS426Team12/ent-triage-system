@@ -14,26 +14,35 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "../../context/AuthContext";
-export default function ResolveCaseDialog({ open, onClose, onResolve }) {
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import dayjs from "dayjs";
+
+export default function ReviewCaseDialog({ open, onClose, onReview }) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = React.useState(false);
   const formik = useFormik({
+    validateOnMount: true,
     enableReinitialize: true,
     initialValues: {
-      resolutionReason: "",
-      resolvedBy: user.email,
+      reviewReason: "",
+      scheduledDate: "",
+      reviewedBy: user.email,
     },
     validationSchema: Yup.object({
-      resolutionReason: Yup.string().required("Resolution reason is required"),
+      reviewReason: Yup.string().required("Review reason is required"),
     }),
     onSubmit: async (values) => {
       setSubmitting(true);
-      await onResolve({
-        resolutionReason: values.resolutionReason, // api will autofill resolvedBy field
-      });
+      const payload = {
+        reviewReason: values.reviewReason,
+      };
+      if (values.scheduledDate) {
+        payload.scheduledDate = new Date(values.scheduledDate);
+      }
+      await onReview(payload);
       setSubmitting(false);
       formik.resetForm();
-      console.log("Resolution Details: ", values);
+      console.log("Review Details: ", values);
     },
   });
 
@@ -46,7 +55,7 @@ export default function ResolveCaseDialog({ open, onClose, onResolve }) {
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Typography sx={{ fontWeight: 600 }}>
-          Please Enter Resolution Details
+          Please Enter Review Details
         </Typography>
       </DialogTitle>
       <Divider />
@@ -57,20 +66,39 @@ export default function ResolveCaseDialog({ open, onClose, onResolve }) {
               fullWidth
               multiline
               rows={4}
-              name="resolutionReason"
-              label="Resolution Reason"
-              placeholder="Describe the resolution..."
-              value={formik.values.resolutionReason}
+              name="reviewReason"
+              label="Review Reason *"
+              placeholder="Describe the review..."
+              value={formik.values.reviewReason}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={Boolean(
-                formik.touched.resolutionReason &&
-                  formik.errors.resolutionReason
+                formik.touched.reviewReason && formik.errors.reviewReason,
               )}
               helperText={
-                formik.touched.resolutionReason &&
-                formik.errors.resolutionReason
+                formik.touched.reviewReason && formik.errors.reviewReason
               }
+            />
+            <DateTimePicker
+              label="Scheduled Date"
+              value={
+                formik.values.scheduledDate
+                  ? dayjs(formik.values.scheduledDate)
+                  : null
+              }
+              onChange={(newValue) => {
+                formik.setFieldValue(
+                  "scheduledDate",
+                  newValue ? newValue : null,
+                );
+              }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  name: "scheduledDate",
+                  onBlur: formik.handleBlur,
+                },
+              }}
             />
             <Box>
               <Typography
@@ -78,7 +106,7 @@ export default function ResolveCaseDialog({ open, onClose, onResolve }) {
                 color="text.secondary"
                 sx={{ fontWeight: 500 }}
               >
-                Resolved By
+                Reviewed By
               </Typography>
               <Typography variant="body1" color="text.primary">
                 {user.email}
@@ -88,8 +116,12 @@ export default function ResolveCaseDialog({ open, onClose, onResolve }) {
         </form>
       </DialogContent>
       <DialogActions sx={{ p: 2, gap: 1 }}>
-        <Button disabled={submitting} onClick={formik.handleSubmit} variant="contained">
-          Resolve
+        <Button
+          disabled={submitting || !formik.isValid}
+          onClick={formik.handleSubmit}
+          variant="contained"
+        >
+          Review
         </Button>
         <Button onClick={handleClose}>Cancel</Button>
       </DialogActions>

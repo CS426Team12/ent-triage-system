@@ -12,7 +12,7 @@ from app.models import (
     TriageCasePublic,
     TriageCasesPublic,
     TriageCaseUpdate,
-    TriageCaseResolve,
+    TriageCaseReview,
     Message,
     User,
     Patient,
@@ -26,11 +26,23 @@ def build_case_public(case: TriageCase, db: Session) -> TriageCasePublic:
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
     
-    resolved_by_email = None
-    if case.resolvedBy:
-        resolver = db.get(User, case.resolvedBy)
-        if resolver:
-            resolved_by_email = resolver.email
+    reviewed_by_email = None
+    if case.reviewedBy:
+        reviewer = db.get(User, case.reviewedBy)
+        if reviewer:
+            reviewed_by_email = reviewer.email
+    
+    override_summary_by_email = None
+    if case.overrideSummaryBy:
+        summary_override_user = db.get(User, case.overrideSummaryBy)
+        if summary_override_user:
+            override_summary_by_email = summary_override_user.email
+    
+    override_urgency_by_email = None
+    if case.overrideUrgencyBy:
+        urgency_override_user = db.get(User, case.overrideUrgencyBy)
+        if urgency_override_user:
+            override_urgency_by_email = urgency_override_user.email
             
     return TriageCasePublic(
         **case.model_dump(),
@@ -42,7 +54,9 @@ def build_case_public(case: TriageCase, db: Session) -> TriageCasePublic:
         returningPatient=patient.returningPatient,
         languagePreference=patient.languagePreference,
         verified=patient.verified,
-        resolvedByEmail=resolved_by_email
+        reviewedByEmail=reviewed_by_email,
+        overrideSummaryByEmail=override_summary_by_email,
+        overrideUrgencyByEmail=override_urgency_by_email
     )
 
 def update_patient_info(
@@ -68,29 +82,10 @@ def get_all_cases(
     count_statement = select(func.count()).select_from(TriageCase)
     count = db.exec(count_statement).one()
     
-    statement = (
-        select(TriageCase, Patient, User.email)
-        .join(Patient)
-        .outerjoin(User, TriageCase.resolvedBy == User.userID)
-        .limit(limit)
-    )
-    results = db.exec(statement).all()
+    statement = select(TriageCase).limit(limit)
+    cases = db.exec(statement).all()
     
-    cases_public = [
-        TriageCasePublic(
-            **case.model_dump(),
-            firstName=patient.firstName,
-            lastName=patient.lastName,
-            DOB=patient.DOB,
-            contactInfo=patient.contactInfo,
-            insuranceInfo=patient.insuranceInfo,
-            returningPatient=patient.returningPatient,
-            languagePreference=patient.languagePreference,
-            verified=patient.verified,
-            resolvedByEmail=resolver_email,
-        )
-        for case, patient, resolver_email in results
-    ]
+    cases_public = [build_case_public(case, db) for case in cases]
 
     logger.info(f"GET /triage-cases/ - returned {count} cases")
     return TriageCasesPublic(cases=cases_public, count=count)
@@ -112,29 +107,13 @@ def get_cases_by_status(
     count = db.exec(count_statement).one()
     
     statement = (
-        select(TriageCase, Patient, User.email)
-        .join(Patient)
-        .outerjoin(User, TriageCase.resolvedBy == User.userID)
+        select(TriageCase)
         .where(TriageCase.status == status)
         .limit(limit)
     )
-    results = db.exec(statement).all()
+    cases = db.exec(statement).all()
     
-    cases_public = [
-        TriageCasePublic(
-            **case.model_dump(),
-            firstName=patient.firstName,
-            lastName=patient.lastName,
-            DOB=patient.DOB,
-            contactInfo=patient.contactInfo,
-            insuranceInfo=patient.insuranceInfo,
-            returningPatient=patient.returningPatient,
-            languagePreference=patient.languagePreference,
-            verified=patient.verified,
-            resolvedByEmail=resolver_email,
-        )
-        for case, patient, resolver_email in results
-    ]
+    cases_public = [build_case_public(case, db) for case in cases]
 
     return TriageCasesPublic(cases=cases_public, count=count)
 
@@ -178,10 +157,10 @@ def update_case(
 ) -> Any:
     logger.info(f"PUT /triage-cases/{id} - user: {current_user.email}, body: {update.model_dump(exclude_unset=True)}")
     
-    if update.status and update.status.lower() == "resolved" or update.resolutionReason:
+    if update.status and update.status.lower() == "reviewed" or update.reviewReason:
         raise HTTPException(
             status_code=403, 
-            detail="Triage case cannot be resolved through generic update"
+            detail="Triage case cannot be reviewed through generic update"
         )
     
     case = db.get(TriageCase, id)
@@ -203,6 +182,12 @@ def update_case(
         update_patient_info(patient, patient_updates, db)
     
     if case_updates:
+        # track which user made overrides
+        if 'overrideUrgency' in case_updates and case_updates['overrideUrgency']:
+            case.overrideUrgencyBy = current_user.userID
+        if 'overrideSummary' in case_updates and case_updates['overrideSummary']:
+            case.overrideSummaryBy = current_user.userID
+        
         case.sqlmodel_update(case_updates)
         db.add(case)
     
@@ -232,29 +217,31 @@ def delete_case(
     return Message(message="Triage case deleted successfully")
 
 
-@router.patch("/{id}/resolve", response_model=TriageCasePublic)
-def resolve_case(
+@router.patch("/{id}/review", response_model=TriageCasePublic)
+def review_case(
     id: uuid.UUID,
-    update: TriageCaseResolve,
+    update: TriageCaseReview,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ) -> Any:
-    logger.info(f"PATCH /triage-cases/{id}/resolve - user: {current_user.email}, body: {update.model_dump()}")
+    logger.info(f"PATCH /triage-cases/{id}/review - user: {current_user.email}, body: {update.model_dump()}")
     
-    if not update.resolutionReason or not update.resolutionReason.strip():
-        raise HTTPException(status_code=400, detail="Resolution reason is required and cannot be empty")
+    if not update.reviewReason or not update.reviewReason.strip():
+        raise HTTPException(status_code=400, detail="Review reason is required and cannot be empty")
     
     case = db.get(TriageCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Triage case not found")
     
-    if case.status == "resolved":
-      raise HTTPException(status_code=400, detail="Case is already resolved")
+    if case.status == "reviewed":
+      raise HTTPException(status_code=400, detail="Case is already reviewed")
     
-    case.status = "resolved"
-    case.resolutionReason = update.resolutionReason
-    case.resolvedBy = current_user.userID
-    case.resolutionTimestamp = datetime.now()
+    case.status = "reviewed"
+    case.reviewReason = update.reviewReason
+    case.reviewedBy = current_user.userID
+    case.reviewTimestamp = datetime.now()
+    if update.scheduledDate:
+        case.scheduledDate = update.scheduledDate
 
     db.add(case)
     db.commit()

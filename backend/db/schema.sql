@@ -41,19 +41,26 @@ CREATE TABLE "TriageCase" (
     "status"              TEXT,
     "dateCreated"         DATE DEFAULT CURRENT_DATE,
     "createdBy"           UUID,
-    "resolutionReason"    TEXT,
-    "resolutionTimestamp" TIMESTAMPTZ,
-    "resolvedBy"          UUID,
+    "reviewReason"        TEXT,
+    "reviewTimestamp"     TIMESTAMPTZ,
+    "reviewedBy"          UUID,
+    "scheduledDate"       TIMESTAMPTZ,
     "overrideSummary"     TEXT,
+    "overrideSummaryBy"   UUID,
     "AIUrgency"           urgency_level_enum,
     "overrideUrgency"     urgency_level_enum,
-    "clinicianSummary"    TEXT,
+    "overrideUrgencyBy"   UUID,
+    "clinicianNotes"      TEXT,
     CONSTRAINT fk_triage_patient
         FOREIGN KEY ("patientID") REFERENCES "Patient"("patientID") ON DELETE CASCADE,
     CONSTRAINT fk_triage_created_by
         FOREIGN KEY ("createdBy") REFERENCES "User"("userID"),
-    CONSTRAINT fk_triage_resolved_by
-        FOREIGN KEY ("resolvedBy") REFERENCES "User"("userID")
+    CONSTRAINT fk_triage_reviewed_by
+        FOREIGN KEY ("reviewedBy") REFERENCES "User"("userID"),
+    CONSTRAINT fk_triage_override_summary_by
+        FOREIGN KEY ("overrideSummaryBy") REFERENCES "User"("userID"),
+    CONSTRAINT fk_triage_override_urgency_by
+        FOREIGN KEY ("overrideUrgencyBy") REFERENCES "User"("userID")
 );
 
 CREATE TABLE "MedicalIdentifiers" (
