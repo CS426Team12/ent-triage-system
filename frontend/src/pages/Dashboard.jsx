@@ -9,35 +9,38 @@ import { useTriageCases } from "../context/TriageCaseContext";
 import { STATUS_VALUES } from "../utils/consts";
 
 export default function Dashboard() {
-  const { fetchCases } = useTriageCases();
-  const [cases, setCases] = React.useState([]);
+  const { cases, fetchCases, getUnreviewedCases, getReviewedCases } = useTriageCases(); 
   const [activeTab, setActiveTab] = React.useState(0);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
   React.useEffect(() => {
-    getCases();
-  }, []);
+    const getCases = async () => {
+      console.log("Fetching cases");
+      setLoading(true);
+      try {
+        await fetchCases();
+      } catch (err) {
+        console.error("Failed to fetch cases", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (cases.length === 0) {
+      getCases();
+    }
+  }, [fetchCases]);
 
-  const getCases = async () => {
-    console.log("hi")
-    const results = await fetchCases();
-    setCases(results);
-    setLoading(false);
-  };
+  const unreviewedCases = React.useMemo(() => {
+    return getUnreviewedCases();
+  }, [getUnreviewedCases]);
 
-  const unreviewedCases =   React.useMemo(() => {
-    if (!cases || cases.length === 0) return [];
-    return cases.filter((c) => c.status !== STATUS_VALUES.REVIEWED);
-  }, [cases]);
-
-  const reviewedCases =   React.useMemo(() => {
-    if (!cases || cases.length === 0) return [];
-    return cases.filter((c) => c.status === STATUS_VALUES.REVIEWED);
-  }, [cases]);
+  const reviewedCases = React.useMemo(() => {
+    return getReviewedCases();
+  }, [getReviewedCases]);
 
   return (
     <>
@@ -96,14 +99,14 @@ export default function Dashboard() {
                 {activeTab === 0 && (
                   <SearchableDataGrid
                     rowData={unreviewedCases || []}
-                    columnDefs={unreviewedColDefs(getCases)}
+                    columnDefs={unreviewedColDefs}
                     loading={loading}
                   />
                 )}
                 {activeTab === 1 && (
                   <SearchableDataGrid
                     rowData={reviewedCases || []}
-                    columnDefs={reviewedColDefs(getCases)}
+                    columnDefs={reviewedColDefs}
                     loading={loading}
                   />
                 )}

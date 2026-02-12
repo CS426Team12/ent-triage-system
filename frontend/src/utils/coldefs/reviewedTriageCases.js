@@ -6,7 +6,7 @@ import {
   concatNameValueGetter,
 } from '../gridUtils';
 
-export const reviewedColDefs = (onCaseUpdated) => [
+export const reviewedColDefs = [
   {
     headerName: 'Urgency',
     flex: 1, // flex determines the proportion the column will take up
@@ -68,6 +68,5 @@ export const reviewedColDefs = (onCaseUpdated) => [
     minWidth: 100,
     cellRenderer: EditCaseButtonCellRenderer,
     sortable: false,
-    cellRendererParams: { onCaseUpdated },
   },
 ];

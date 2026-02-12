@@ -7,7 +7,7 @@ import {
   UrgencyChangeCellRenderer,
 } from '../gridUtils';
 
-export const unreviewedColDefs = (onCaseUpdated) => [
+export const unreviewedColDefs = [
   {
     headerName: 'Change',
     colId: "change",
@@ -65,6 +65,5 @@ export const unreviewedColDefs = (onCaseUpdated) => [
     minWidth: 100,
     cellRenderer: EditCaseButtonCellRenderer,
     sortable: false,
-    cellRendererParams: { onCaseUpdated },
   },
 ];

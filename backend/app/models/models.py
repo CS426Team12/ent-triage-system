@@ -96,7 +96,7 @@ class TriageCaseBase(SQLModel):
     transcript: Optional[str] = None
     AIConfidence: Optional[float] = None
     AISummary: Optional[str] = None
-    status: str = "pending"
+    status: str = "unreviewed"
     AIUrgency: Optional[str] = None
     clinicianNotes: Optional[str] = None
     overrideSummary: Optional[str] = None

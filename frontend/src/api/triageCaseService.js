@@ -22,8 +22,13 @@ class TriageCaseService {
   }
 
   async reviewCase(id, updateData) {
-  const res = await apiClient.patch(`/triage-cases/${id}/review`, updateData);
-  return res.data;
+    const res = await apiClient.patch(`/triage-cases/${id}/review`, updateData);
+    return res.data;
+  }
+
+  async getCaseChangelog(id) {
+    const res = await apiClient.get(`/triage-cases/${id}/changelog`);
+    return res.data;
   }
 }
 

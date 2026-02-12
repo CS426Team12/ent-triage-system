@@ -4,20 +4,20 @@ import { patientService } from "../api/patientService";
 const PatientContext = createContext();
 
 export function PatientProvider({ children }) {
-  const fetchPatientById = useCallback(async (patientId) => {
-    if (!patientId) return;
-    return await patientService.getPatientById(patientId);
+  const fetchPatientById = useCallback(async (id) => {
+    if (!id) return;
+    return await patientService.getPatientById(id);
   }, []);
 
-  const updatePatient = useCallback(async (patientId, updates) => {
-    if (!patientId || !updates || Object.keys(updates).length === 0) return;
-    const updatedPatient = await patientService.updatePatient(patientId, updates);
+  const updatePatient = useCallback(async (id, updates) => {
+    if (!id || !updates || Object.keys(updates).length === 0) return;
+    const updatedPatient = await patientService.updatePatient(id, updates);
     return updatedPatient;
   }, []);
 
-  const fetchPatientChangelog = useCallback(async (patientId) => {
-    if (!patientId) return [];
-    return await patientService.getPatientChangelog(patientId);
+  const fetchPatientChangelog = useCallback(async (id) => {
+    if (!id) return [];
+    return await patientService.getPatientChangelog(id);
   }, []);
 
   const value = {

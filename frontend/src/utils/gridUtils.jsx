@@ -34,7 +34,7 @@ export const UrgencyCellRenderer = (params) => {
 
 export const EditCaseButtonCellRenderer = (params) => {
   const [open, setOpen] = React.useState(false);
-  const { updateCase, reviewCase } = useTriageCases();
+  const { updateCase, reviewCase, fetchCaseById } = useTriageCases();
   const { updatePatient } = usePatients();
   const caseData = params.data;
 
@@ -97,7 +97,6 @@ export const EditCaseButtonCellRenderer = (params) => {
           await updateCase(caseData.caseID, caseUpdates);
         }
 
-        params.onCaseUpdated?.();
         toast.success("Successfully updated case");
       }
     } catch (err) {
