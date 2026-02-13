@@ -65,7 +65,6 @@ export const CaseDetailsForm = ({
           />
         </Box>
       </Grid>
-
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
         <Typography variant="h8" sx={{ fontWeight: 600 }}>
           Case Information
@@ -97,7 +96,6 @@ export const CaseDetailsForm = ({
               renderChip
             />
           </Box>
-
           <Box mb={2}>
             <Typography variant="subtitle2" color="textSecondary">
               {FIELD_LABELS.dateCreated}
@@ -106,13 +104,11 @@ export const CaseDetailsForm = ({
               {dayjs(caseData.dateCreated).format("h:mm A, MM/DD/YYYY")}
             </Typography>
           </Box>
-
           <Typography variant="subtitle2" color="textSecondary">
             {FIELD_LABELS.AISummary}
           </Typography>
           <Typography variant="body2">{caseData.AISummary || "---"}</Typography>
         </Box>
-
         {editMode || formik.values.overrideSummary ? (
           <RenderTextField
             editMode={editMode}
@@ -125,14 +121,12 @@ export const CaseDetailsForm = ({
             {FIELD_LABELS.overrideSummary}
           </Button>
         )}
-
         <RenderTextField
           editMode={editMode}
           formik={formik}
           fieldName="clinicianNotes"
           label={FIELD_LABELS.clinicianNotes}
         />
-
         {caseData?.status === STATUS_VALUES.REVIEWED && (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <Typography variant="h8" sx={{ fontWeight: 600 }}>

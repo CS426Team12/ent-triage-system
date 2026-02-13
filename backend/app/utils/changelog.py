@@ -15,22 +15,6 @@ def log_changes(
     user_id: uuid.UUID,
     exclude_fields: List[str] = None
 ) -> int:
-    """
-    Generic function to log changes to any changelog table
-    
-    Args:
-        session: Database session
-        old_record: The existing SQLModel record from DB
-        new_values: Dictionary of new values being updated
-        changelog_model: The changelog model class (PatientChangelog or TriageCaseChangelog)
-        foreign_key_field: Name of FK field ('patientID' or 'caseID')
-        record_id: ID of the record being updated
-        user_id: ID of user making the change
-        exclude_fields: Fields to exclude from changelog
-        
-    Returns:
-        Number of changes logged
-    """
     try:
         if exclude_fields is None:
             exclude_fields = ['id', 'createdAt', 'updatedAt']

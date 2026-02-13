@@ -39,7 +39,7 @@ class User(SQLModel, table=True):
     firstName: str
     role: str
     passwordHash: str
-    lastLogin: datetime = Field(default_factory=datetime.utcnow)
+    lastLogin: datetime = Field(default_factory=datetime.now)
     lastName: str
     email: str = Field(unique=True)
 
@@ -85,7 +85,7 @@ class PatientChangelog(SQLModel, table=True):
     
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     patientID: uuid.UUID = Field(foreign_key="ent.Patient.patientID")
-    changedAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    changedAt: datetime = Field(default_factory=datetime.now    )
     changedBy: uuid.UUID = Field(foreign_key="ent.User.userID")
     fieldName: str = Field(max_length=100)
     oldValue: Optional[str] = None
@@ -108,7 +108,7 @@ class TriageCase(TriageCaseBase, table=True):
     
     caseID: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     patientID: uuid.UUID = Field(foreign_key="ent.Patient.patientID")
-    dateCreated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    dateCreated: datetime = Field(default_factory=datetime.now)
     createdBy: Optional[uuid.UUID] = None
     reviewReason: Optional[str] = None
     reviewTimestamp: Optional[datetime] = None
@@ -165,7 +165,7 @@ class TriageCaseChangelog(SQLModel, table=True):
     
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     caseID: uuid.UUID = Field(foreign_key="ent.TriageCase.caseID")
-    changedAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    changedAt: datetime = Field(default_factory=datetime.now)
     changedBy: uuid.UUID = Field(foreign_key="ent.User.userID")
     fieldName: str = Field(max_length=100)
     oldValue: Optional[str] = None

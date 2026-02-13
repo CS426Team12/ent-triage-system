@@ -301,17 +301,16 @@ def review_case(
         if update.scheduledDate:
             review_updates['scheduledDate'] = update.scheduledDate
         
-        filtered_updates = {key: value for key, value in review_updates.items() if key != 'reviewedBy'}
-        
         # Log changes
         log_changes(
             session=db,
             old_record=case,
-            new_values=filtered_updates,
+            new_values=review_updates,
             changelog_model=TriageCaseChangelog,
             foreign_key_field='caseID',
             record_id=id,
-            user_id=current_user.userID
+            user_id=current_user.userID,
+            exclude_fields=['reviewedBy'],
         )
         
         case.status = "reviewed"

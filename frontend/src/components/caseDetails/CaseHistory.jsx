@@ -11,7 +11,14 @@ import {
   Autocomplete,
   TextField,
   Button,
+  Pagination,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Grid,
 } from "@mui/material";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import {
   Timeline,
   TimelineItem,
@@ -44,6 +51,12 @@ export const CaseHistory = ({ caseId, patientId }) => {
   const [loading, setLoading] = useState(true);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedFields, setSelectedFields] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+
+  // pagination stuff
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const { fetchCaseChangelog } = useTriageCases();
   const { fetchPatientChangelog } = usePatients();
@@ -54,21 +67,37 @@ export const CaseHistory = ({ caseId, patientId }) => {
     }
   }, [caseId, patientId]);
 
+  // reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [historyView, selectedUsers, selectedFields, startDate, endDate]);
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleItemsPerPageChange = (event) => {
+    setItemsPerPage(event.target.value);
+    setPage(1);
+  };
+
   const loadHistory = async () => {
     if (!caseId || !patientId) return;
+    setLoading(true);
     try {
       const [caseHistory, patientHistory] = await Promise.all([
         fetchCaseChangelog(caseId),
         fetchPatientChangelog(patientId),
       ]);
 
-      const caseEntries = caseHistory.map((entry) => ({
+      const caseEntries = (caseHistory || []).map((entry) => ({
         ...entry,
         source: HISTORY_VIEWS.CASE,
         entityType: "Case Details",
       }));
 
-      const patientEntries = patientHistory.map((entry) => ({
+      const patientEntries = (patientHistory || []).map((entry) => ({
         ...entry,
         source: HISTORY_VIEWS.PATIENT,
         entityType: "Patient",
@@ -81,6 +110,7 @@ export const CaseHistory = ({ caseId, patientId }) => {
       setHistory(combined);
     } catch (error) {
       console.error("Failed to load history:", error);
+      setHistory([]);
     } finally {
       setLoading(false);
     }
@@ -97,6 +127,10 @@ export const CaseHistory = ({ caseId, patientId }) => {
   };
 
   const getDisplayValue = (fieldName, value) => {
+    if (value === null || value === undefined || value === "") {
+      return "(empty)";
+    }
+
     if (fieldName === "overrideUrgency" || fieldName === "AIUrgency") {
       return URGENCY_LABELS[value] || value;
     }
@@ -115,7 +149,33 @@ export const CaseHistory = ({ caseId, patientId }) => {
       return option ? option.label : value;
     }
 
-    return value || "(empty)";
+    return value;
+  };
+
+  const groupByTimestamp = (history) => {
+    if (history.length === 0) return [];
+
+    const grouped = {};
+
+    history.forEach((entry) => {
+      const roundedTimestamp = dayjs(entry.changedAt)
+        .startOf("minute")
+        .toISOString();
+
+      if (!grouped[roundedTimestamp]) {
+        grouped[roundedTimestamp] = {
+          periodStart: roundedTimestamp,
+          periodEnd: roundedTimestamp,
+          changes: [],
+        };
+      }
+
+      grouped[roundedTimestamp].changes.push(entry);
+    });
+
+    return Object.values(grouped).sort(
+      (a, b) => new Date(b.periodStart) - new Date(a.periodStart),
+    );
   };
 
   const availableUsers = useMemo(() => {
@@ -150,9 +210,43 @@ export const CaseHistory = ({ caseId, patientId }) => {
       ) {
         return false;
       }
+
+      const entryDate = dayjs(entry.changedAt);
+      if (startDate && entryDate.isBefore(dayjs(startDate))) {
+        return false;
+      }
+      if (endDate && entryDate.isAfter(dayjs(endDate))) {
+        return false;
+      }
+
       return true;
     });
-  }, [history, historyView, selectedUsers, selectedFields]);
+  }, [history, historyView, selectedUsers, selectedFields, startDate, endDate]);
+
+  const groupedHistory = useMemo(() => {
+    return groupByTimestamp(filteredHistory);
+  }, [filteredHistory]);
+
+  const paginatedGroups = useMemo(() => {
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return groupedHistory.slice(startIndex, endIndex);
+  }, [groupedHistory, page, itemsPerPage]);
+
+  const totalPages = Math.ceil(groupedHistory.length / itemsPerPage);
+
+  const hasActiveFilters =
+    selectedUsers.length > 0 ||
+    selectedFields.length > 0 ||
+    startDate !== null ||
+    endDate !== null;
+
+  const clearAllFilters = () => {
+    setSelectedUsers([]);
+    setSelectedFields([]);
+    setStartDate(null);
+    setEndDate(null);
+  };
 
   if (loading) {
     return (
@@ -169,12 +263,11 @@ export const CaseHistory = ({ caseId, patientId }) => {
 
   return (
     <Box>
-      <Stack>
+      <Stack spacing={2}>
         <Stack
           direction="row"
           justifyContent="space-between"
           alignItems="center"
-          mb={2}
         >
           <Typography variant="h8" sx={{ fontWeight: 600 }}>
             Change History
@@ -194,13 +287,36 @@ export const CaseHistory = ({ caseId, patientId }) => {
             </ToggleButton>
           </ToggleButtonGroup>
         </Stack>
-        <Stack
-          direction="row"
-          justifyContent="flex-end"
-          alignItems="center"
-          mb={2}
-          spacing={2}
-        >
+        <Stack direction="row" spacing={2}>
+          <DateTimePicker
+            label="Start Date"
+            value={startDate}
+            onChange={(newValue) => setStartDate(newValue)}
+            slotProps={{
+              textField: {
+                size: "small",
+                fullWidth: true,
+              },
+              actionBar: {
+                actions: ["clear", "accept"],
+              },
+            }}
+          />
+          <DateTimePicker
+            label="End Date"
+            value={endDate}
+            onChange={(newValue) => setEndDate(newValue)}
+            slotProps={{
+              textField: {
+                size: "small",
+                fullWidth: true,
+              },
+              actionBar: {
+                actions: ["clear", "accept"],
+              },
+            }}
+            minDateTime={startDate}
+          />
           <Autocomplete
             multiple
             size="small"
@@ -235,127 +351,196 @@ export const CaseHistory = ({ caseId, patientId }) => {
               },
             }}
           />
-        </Stack>
-        {(selectedUsers.length > 0 || selectedFields.length > 0) && (
-          <Stack
-            direction="row"
-            spacing={1}
-            alignItems="center"
-            justifyContent="flex-end"
-            mb={2}
-          >
-            <Typography variant="body2" color="text.secondary">
-              Showing {filteredHistory.length} of {history.length}
-            </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => {
-                setSelectedUsers([]);
-                setSelectedFields([]);
-              }}
+          {hasActiveFilters && (
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              justifyContent="space-between"
             >
-              Clear Filters
-            </Button>
-          </Stack>
-        )}
+              <Typography variant="body2" color="text.secondary">
+                Showing {filteredHistory.length} of {history.length} changes
+              </Typography>
+              <Button size="small" variant="outlined" onClick={clearAllFilters}>
+                Clear All Filters
+              </Button>
+            </Stack>
+          )}
+        </Stack>
       </Stack>
-      {filteredHistory.length === 0 ? (
+      {paginatedGroups.length === 0 ? (
         <Box textAlign="center" py={4}>
           <Typography color="text.secondary">
             No change history available
           </Typography>
         </Box>
       ) : (
-        <Timeline position="right">
-          {filteredHistory.map((entry, index) => (
-            <TimelineItem key={entry.id}>
-              <TimelineOppositeContent
-                color="text.secondary"
-                sx={{ flex: 0.15, minWidth: 100 }}
-              >
-                <Typography variant="caption">
-                  {dayjs(entry.changedAt).format("MMM D, YYYY")}
-                </Typography>
-                <Typography variant="caption" display="block">
-                  {dayjs(entry.changedAt).format("h:mm A")}
-                </Typography>
-              </TimelineOppositeContent>
-
-              <TimelineSeparator>
-                <TimelineDot color={"primary"} />
-                {index < filteredHistory.length - 1 && <TimelineConnector />}
-              </TimelineSeparator>
-              <TimelineContent sx={{ flex: 1 }}>
-                <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
-                  <Stack spacing={2}>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      alignItems="center"
-                      justifyContent="space-between"
-                    >
-                      <Stack>
-                        <Typography variant="subtitle2" fontWeight="bold">
-                          {entry.changedByEmail}
-                        </Typography>
+        <>
+          <Timeline position="right" sx={{ mt: 3 }}>
+            {paginatedGroups.map((group, groupIndex) => {
+              const periodTime = dayjs(group.periodStart);
+              const hasMultipleChanges = group.changes.length > 1;
+              const uniqueUsers = [
+                ...new Set(group.changes.map((c) => c.changedByEmail)),
+              ];
+              return (
+                <TimelineItem key={groupIndex}>
+                  <TimelineOppositeContent
+                    color="text.secondary"
+                    sx={{ flex: 0.15, minWidth: 100 }}
+                  >
+                    <Typography variant="caption" fontWeight={600}>
+                      {periodTime.format("MMM D, YYYY")}
+                    </Typography>
+                    <Typography variant="caption" display="block">
+                      {periodTime.format("h:mm A")}
+                    </Typography>
+                  </TimelineOppositeContent>
+                  <TimelineSeparator>
+                    <TimelineDot color="primary" />
+                    {groupIndex < paginatedGroups.length - 1 && (
+                      <TimelineConnector />
+                    )}
+                  </TimelineSeparator>
+                  <TimelineContent sx={{ flex: 1 }}>
+                    <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+                      <Stack spacing={2}>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          alignItems="center"
+                          justifyContent="space-between"
+                        >
+                          <Typography variant="body2" color="text.secondary">
+                            {hasMultipleChanges ? (
+                              <>
+                                {group.changes.length} change
+                                {group.changes.length > 1 ? "s" : ""}
+                                {uniqueUsers.length > 1 &&
+                                  ` by ${uniqueUsers.length} users`}
+                              </>
+                            ) : (
+                              group.changes[0].changedByEmail
+                            )}
+                          </Typography>
+                          <Stack
+                            direction="row"
+                            spacing={0.5}
+                            alignItems="center"
+                          >
+                            {group.changes
+                              .map((c) => c.entityType)
+                              .filter((v, i, a) => a.indexOf(v) === i)
+                              .map((type) => (
+                                <Chip
+                                  key={type}
+                                  label={type}
+                                  size="small"
+                                  color="primary"
+                                  variant="outlined"
+                                />
+                              ))}
+                          </Stack>
+                        </Stack>
+                        <Stack spacing={2}>
+                          {group.changes.map((change, changeIndex) => (
+                            <Box key={change.id || changeIndex}>
+                              <Stack spacing={1}>
+                                <Typography
+                                  variant="caption"
+                                  fontWeight={600}
+                                  color="text.secondary"
+                                >
+                                  {change.changedByEmail}
+                                </Typography>
+                                <Typography variant="body2" fontWeight={600}>
+                                  {getDisplayLabel(change.fieldName)}
+                                </Typography>
+                                <Stack
+                                  direction="row"
+                                  spacing={1}
+                                  alignItems="center"
+                                  flexWrap="wrap"
+                                >
+                                  <Chip
+                                    label={getDisplayValue(
+                                      change.fieldName,
+                                      change.oldValue,
+                                    )}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: "grey.100",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.75rem",
+                                    }}
+                                  />
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
+                                    →
+                                  </Typography>
+                                  <Chip
+                                    label={getDisplayValue(
+                                      change.fieldName,
+                                      change.newValue,
+                                    )}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: "primary.50",
+                                      color: "primary.main",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.75rem",
+                                      fontWeight: 600,
+                                    }}
+                                  />
+                                </Stack>
+                              </Stack>
+                            </Box>
+                          ))}
+                        </Stack>
                       </Stack>
-                      <Chip
-                        label={entry.entityType}
-                        size="small"
-                        color={"primary"}
-                        variant="outlined"
-                      />
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary">
-                      Field:{" "}
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          bgcolor: "grey.100",
-                          px: 0.75,
-                          py: 0.25,
-                          borderRadius: 0.5,
-                          fontWeight: 600,
-                        }}
-                      >
-                        {getDisplayLabel(entry.fieldName)}
-                      </Typography>
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Before:{" "}
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          bgcolor: "grey.100",
-                          px: 0.75,
-                          py: 0.25,
-                          borderRadius: 0.5,
-                        }}
-                      >
-                        {getDisplayValue(entry.fieldName, entry.oldValue)}
-                      </Typography>
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      After:{" "}
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          bgcolor: "grey.100",
-                          px: 0.75,
-                          py: 0.25,
-                          borderRadius: 0.5,
-                        }}
-                      >
-                        {getDisplayValue(entry.fieldName, entry.newValue)}
-                      </Typography>
-                    </Typography>
-                  </Stack>
-                </Paper>
-              </TimelineContent>
-            </TimelineItem>
-          ))}
-        </Timeline>
+                    </Paper>
+                  </TimelineContent>
+                </TimelineItem>
+              );
+            })}
+          </Timeline>
+          <Grid container spacing={2} alignItems="center" sx={{ mt: 2 }}>
+            <Grid item xs={12} sm="auto" sx={{ flexGrow: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Showing {(page - 1) * itemsPerPage + 1}-
+                {Math.min(page * itemsPerPage, groupedHistory.length)} of{" "}
+                {groupedHistory.length}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Per Page</InputLabel>
+                <Select
+                  value={itemsPerPage}
+                  label="Per Page"
+                  onChange={handleItemsPerPageChange}
+                >
+                  <MenuItem value={5}>5</MenuItem>
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={20}>20</MenuItem>
+                  <MenuItem value={50}>50</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={handlePageChange}
+                color="primary"
+                showFirstButton
+                showLastButton
+              />
+            </Grid>
+          </Grid>
+        </>
       )}
     </Box>
   );
