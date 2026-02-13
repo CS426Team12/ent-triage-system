@@ -2,7 +2,6 @@ import {
   UrgencyCellRenderer,
   urgencyComparator,
   dateTimeFormatter,
-  ageValueGetter,
   EditCaseButtonCellRenderer,
   concatNameValueGetter,
   UrgencyChangeCellRenderer,
@@ -38,15 +37,7 @@ export const unreviewedColDefs = [
     filter: 'agTextColumnFilter',
     valueGetter: (params) => {
       return concatNameValueGetter(params.data.firstName, params.data.lastName);
-    }
-  },
-  {
-    headerName: 'Age',
-    field: 'DOB',
-    flex: 0.5,
-    minWidth: 100,
-    filter: 'agNumberColumnFilter',
-    valueGetter: (params) => ageValueGetter(params.data?.DOB),
+    },
   },
   {
     headerName: 'Date Created',
@@ -66,7 +57,7 @@ export const unreviewedColDefs = [
     filter: 'agTextColumnFilter',
     valueGetter: (params) => {
       return params.data.overrideSummary || params.data.AISummary;
-    }
+    },
   },
   {
     headerName: 'Edit',

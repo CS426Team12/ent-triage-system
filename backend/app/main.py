@@ -6,6 +6,7 @@ from sqlmodel import Session, text
 from app.auth.routes import router as auth_routes
 from app.routes.triageCase import router as triage_routes
 from app.routes.user import router as user_routes
+from app.routes.patient import router as patient_routes
 from app.core.database import engine
 from app.core.config import settings
 from app.core.dependencies import get_db
@@ -32,6 +33,7 @@ app.add_middleware(
 app.include_router(auth_routes)
 app.include_router(triage_routes)
 app.include_router(user_routes)
+app.include_router(patient_routes)
 
 @app.get("/")
 def root():

@@ -17,7 +17,7 @@ class UserService {
   }
 
   async updateUser(id, updateData) {
-    const res = await apiClient.put(`/users/${id}`, updateData);
+    const res = await apiClient.patch(`/users/${id}`, updateData);
     return res.data;
   }
 }
