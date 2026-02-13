@@ -87,7 +87,7 @@ export const CaseDetailsForm = ({
                 Case Urgency
               </Typography>
               <UrgencyChangeIndicator
-                initialUrgency={caseData.AIUrgency}
+                prevUrgency={caseData.previousUrgency || caseData.AIUrgency}
                 currentUrgency={caseData.overrideUrgency || caseData.AIUrgency}
               />
             </Box>

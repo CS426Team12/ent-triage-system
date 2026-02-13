@@ -166,18 +166,18 @@ export const EditUserButtonCellRenderer = (params) => {
   );
 };
 
-// export const UrgencyChangeCellRenderer = (params) => {
-//   const { AIUrgency, overrideUrgency, overrideUrgencyByEmail } = params.data;
-//   const currentUrgency = overrideUrgency || AIUrgency;
+export const UrgencyChangeCellRenderer = (params) => {
+  const { previousUrgency, overrideUrgency, AIUrgency } = params.data;
+  const current = overrideUrgency || AIUrgency;
+  const prev = previousUrgency || AIUrgency;
 
-//   return (
-//     <UrgencyChangeIndicator
-//       initialUrgency={AIUrgency}
-//       currentUrgency={currentUrgency}
-//       overrideBy={overrideUrgencyByEmail}
-//     />
-//   );
-// };
+  return (
+    <UrgencyChangeIndicator
+      prevUrgency={prev}
+      currentUrgency={current}
+    />
+  );
+};
 
 export const ageValueGetter = (dob) => {
   if (!dob) return null;

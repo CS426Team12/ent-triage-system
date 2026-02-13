@@ -153,6 +153,7 @@ class TriageCasePublic(TriageCaseBase, PatientBase):
     reviewedBy: Optional[uuid.UUID] = None
     reviewedByEmail: Optional[str] = None
     scheduledDate: Optional[datetime] = None
+    previousUrgency: Optional[str] = None
 
 class TriageCasesPublic(SQLModel):
     cases: list[TriageCasePublic] 

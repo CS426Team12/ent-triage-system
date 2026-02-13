@@ -35,6 +35,20 @@ def build_case_public(case: TriageCase, db: Session) -> TriageCasePublic:
         if reviewer:
             reviewed_by_email = reviewer.email
             
+    previous_urgency = None
+    urgency_change_by_email = None
+    if case.overrideUrgency:
+        statement = (
+            select(TriageCaseChangelog)
+            .where(TriageCaseChangelog.caseID == case.caseID)
+            .where(TriageCaseChangelog.fieldName == 'overrideUrgency')
+            .order_by(TriageCaseChangelog.changedAt.desc())
+            .limit(1)
+        )
+        last_change = db.exec(statement).first()
+        if last_change:
+            previous_urgency = last_change.oldValue
+            
     return TriageCasePublic(
         **case.model_dump(),
         firstName=patient.firstName,
@@ -46,6 +60,7 @@ def build_case_public(case: TriageCase, db: Session) -> TriageCasePublic:
         languagePreference=patient.languagePreference,
         verified=patient.verified,
         reviewedByEmail=reviewed_by_email,
+        previousUrgency=previous_urgency,
     )
 
 @router.get("/", response_model=TriageCasesPublic)
