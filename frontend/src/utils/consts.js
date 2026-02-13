@@ -15,6 +15,7 @@ export const FIELD_LABELS = {
   dateCreated: 'Date Created',
   reviewReason: 'Review Reason',
   reviewedByEmail: 'Reviewed By',
+  reviewTimestamp: 'Reviewed At',
   scheduledDate: 'Scheduled Date',
   status: 'Status',
 };
