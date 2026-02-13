@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -8,6 +8,9 @@ import {
   Chip,
   Paper,
   Stack,
+  Autocomplete,
+  TextField,
+  Button,
 } from "@mui/material";
 import {
   Timeline,
@@ -32,6 +35,8 @@ export const CaseHistory = ({ caseId, patientId }) => {
   const [historyView, setHistoryView] = useState(HISTORY_VIEWS.COMBINED);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectedFields, setSelectedFields] = useState([]);
 
   const { fetchCaseChangelog } = useTriageCases();
   const { fetchPatientChangelog } = usePatients();
@@ -80,10 +85,37 @@ export const CaseHistory = ({ caseId, patientId }) => {
     }
   };
 
-  const filteredHistory = history.filter((entry) => {
-    if (historyView === HISTORY_VIEWS.COMBINED) return true;
-    return entry.source === historyView;
-  });
+  // for filter options
+  const availableUsers = useMemo(() => {
+    const users = new Set(history.map((entry) => entry.changedByEmail));
+    return Array.from(users).sort();
+  }, [history]);
+
+  const availableFields = useMemo(() => {
+    const fields = new Set(history.map((entry) => entry.fieldName));
+    return Array.from(fields).sort();
+  }, [history]);
+
+  const filteredHistory = useMemo(() => {
+    return history.filter((entry) => {
+      if (historyView !== "combined" && entry.source !== historyView) {
+        return false;
+      }
+      if (
+        selectedUsers.length > 0 &&
+        !selectedUsers.includes(entry.changedByEmail)
+      ) {
+        return false;
+      }
+      if (
+        selectedFields.length > 0 &&
+        !selectedFields.includes(entry.fieldName)
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [history, historyView, selectedUsers, selectedFields]);
 
   if (loading) {
     return (
@@ -100,29 +132,92 @@ export const CaseHistory = ({ caseId, patientId }) => {
 
   return (
     <Box>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-      >
-        <Typography variant="h8" sx={{ fontWeight: 600 }}>
-          Change History
-        </Typography>
-        <ToggleButtonGroup
-          value={historyView}
-          exclusive
-          onChange={handleHistoryViewChange}
-          size="small"
+      <Stack>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
         >
-          <ToggleButton value={HISTORY_VIEWS.COMBINED}>
-            All Changes
-          </ToggleButton>
-          <ToggleButton value={HISTORY_VIEWS.CASE}>Case Only</ToggleButton>
-          <ToggleButton value={HISTORY_VIEWS.PATIENT}>
-            Patient Only
-          </ToggleButton>
-        </ToggleButtonGroup>
+          <Typography variant="h8" sx={{ fontWeight: 600 }}>
+            Change History
+          </Typography>
+          <ToggleButtonGroup
+            value={historyView}
+            exclusive
+            onChange={handleHistoryViewChange}
+            size="small"
+          >
+            <ToggleButton value={HISTORY_VIEWS.COMBINED}>
+              All Changes
+            </ToggleButton>
+            <ToggleButton value={HISTORY_VIEWS.CASE}>Case Only</ToggleButton>
+            <ToggleButton value={HISTORY_VIEWS.PATIENT}>
+              Patient Only
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
+        <Stack
+          direction="row"
+          justifyContent="flex-end"
+          alignItems="center"
+          mb={2}
+          spacing={2}
+        >
+          <Autocomplete
+            multiple
+            size="small"
+            options={availableUsers}
+            value={selectedUsers}
+            onChange={(event, newValue) => setSelectedUsers(newValue)}
+            renderInput={(params) => <TextField {...params} label="User" />}
+            slotProps={{
+              popper: {
+                style: {
+                  width: "fit-content",
+                },
+              },
+            }}
+          />
+          <Autocomplete
+            multiple
+            size="small"
+            options={availableFields}
+            value={selectedFields}
+            onChange={(event, newValue) => setSelectedFields(newValue)}
+            renderInput={(params) => <TextField {...params} label="Field" />}
+            slotProps={{
+              popper: {
+                style: {
+                  width: "fit-content",
+                },
+              },
+            }}
+          />
+        </Stack>
+        {(selectedUsers.length > 0 || selectedFields.length > 0) && (
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="flex-end"
+            mb={2}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Showing {filteredHistory.length} of {history.length}
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => {
+                setSelectedUsers([]);
+                setSelectedFields([]);
+              }}
+            >
+              Clear Filters
+            </Button>
+          </Stack>
+        )}
       </Stack>
       {filteredHistory.length === 0 ? (
         <Box textAlign="center" py={4}>
