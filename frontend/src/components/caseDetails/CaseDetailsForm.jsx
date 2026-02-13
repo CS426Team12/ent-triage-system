@@ -101,7 +101,7 @@ export const CaseDetailsForm = ({
               {FIELD_LABELS.dateCreated}
             </Typography>
             <Typography variant="body2">
-              {dayjs(caseData.dateCreated).format("h:mm A, MM/DD/YYYY")}
+              {dayjs(caseData.dateCreated).format("MM/DD/YYYY, h:mm A")}
             </Typography>
           </Box>
           <Typography variant="subtitle2" color="textSecondary">

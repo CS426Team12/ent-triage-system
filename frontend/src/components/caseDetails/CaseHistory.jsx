@@ -140,7 +140,7 @@ export const CaseHistory = ({ caseId, patientId }) => {
     }
 
     if (typeof value === "string" && Date.parse(value)) {
-      return dayjs(value).format("h:mm A, MM/DD/YYYY");
+      return dayjs(value).format("MM/DD/YYYY, h:mm A");
     }
 
     if (fieldName === "returningPatient") {
