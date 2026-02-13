@@ -450,13 +450,15 @@ export const CaseHistory = ({ caseId, patientId }) => {
                           {group.changes.map((change, changeIndex) => (
                             <Box key={change.id || changeIndex}>
                               <Stack spacing={1}>
-                                <Typography
-                                  variant="caption"
-                                  fontWeight={600}
-                                  color="text.secondary"
-                                >
-                                  {change.changedByEmail}
-                                </Typography>
+                                {hasMultipleChanges && (
+                                  <Typography
+                                    variant="caption"
+                                    fontWeight={600}
+                                    color="text.secondary"
+                                  >
+                                    {change.changedByEmail}
+                                  </Typography>
+                                )}
                                 <Typography variant="body2" fontWeight={600}>
                                   {getDisplayLabel(change.fieldName)}
                                 </Typography>
