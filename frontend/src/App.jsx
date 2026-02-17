@@ -24,49 +24,6 @@ function App() {
   return (
     <AuthProvider>
       <TriageCaseProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-          />
-          <Router>
-            <Routes>
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              {/* 
-                the set-password route will eventually use dynamic routing with generated email tokens for password reset and account registration 
-                using current setup for testing ui
-              */}
-              <Route path="/set-password" element={<SetPassword />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminPortal />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </Router>
-        </ThemeProvider>
         <PatientProvider>
           <ThemeProvider theme={theme}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -87,6 +44,8 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Navigate to="/login" replace />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/set-password" element={<SetPassword />} />
                   <Route
                     path="/dashboard"
                     element={
