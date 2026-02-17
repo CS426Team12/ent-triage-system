@@ -2,11 +2,21 @@ import {
   UrgencyCellRenderer,
   urgencyComparator,
   dateTimeFormatter,
-  ageValueGetter,
   EditCaseButtonCellRenderer,
+  concatNameValueGetter,
+  UrgencyChangeCellRenderer,
 } from '../gridUtils';
 
-export const triageCaseColumnDefs = [
+export const unreviewedColDefs = [
+  {
+    headerName: 'Change',
+    colId: "change",
+    filter: false,
+    sortable: false,
+    cellRenderer: UrgencyChangeCellRenderer,
+    flex: 0.25,
+    minWidth: 100,
+  },
   {
     headerName: 'Urgency',
     flex: 1, // flex determines the proportion the column will take up
@@ -20,29 +30,17 @@ export const triageCaseColumnDefs = [
     }
   },
   {
-    headerName: 'First Name',
-    field: 'firstName',
+    headerName: 'Name',
+    colId: 'name',
     flex: 0.75,
     minWidth: 150,
     filter: 'agTextColumnFilter',
+    valueGetter: (params) => {
+      return concatNameValueGetter(params.data.firstName, params.data.lastName);
+    },
   },
   {
-    headerName: 'Last Name',
-    field: 'lastName',
-    flex: 0.75,
-    minWidth: 150,
-    filter: 'agTextColumnFilter',
-  },
-  {
-    headerName: 'Age',
-    field: 'DOB',
-    flex: 0.5,
-    minWidth: 100,
-    filter: 'agNumberColumnFilter',
-    valueGetter: (params) => ageValueGetter(params.data?.DOB),
-  },
-  {
-    headerName: 'Date',
+    headerName: 'Date Created',
     field: 'dateCreated',
     flex: 0.75,
     minWidth: 200,
@@ -59,7 +57,7 @@ export const triageCaseColumnDefs = [
     filter: 'agTextColumnFilter',
     valueGetter: (params) => {
       return params.data.overrideSummary || params.data.AISummary;
-    }
+    },
   },
   {
     headerName: 'Edit',

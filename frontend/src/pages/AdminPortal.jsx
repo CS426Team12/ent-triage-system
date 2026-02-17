@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Grid, Typography, Box, Paper, Stack, Button } from "@mui/material";
 import { SupervisorAccount } from "@mui/icons-material";
 import SearchableDataGrid from "../components/grid/SearchableDataGrid";
-import { userColumnDefs } from "../utils/coldefs/user";
+import { userColumnDefs } from "../utils/coldefs/users";
 import CreateUserDialog from "../components/admin/CreateUserDialog";
 import { userService } from "../api/userService";
 import { toast } from "../utils/toast";

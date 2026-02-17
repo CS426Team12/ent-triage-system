@@ -19,6 +19,7 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
   const [submitting, setSubmitting] = React.useState(false);
 
   const formik = useFormik({
+    validateOnMount: true,
     initialValues: {
       firstName: "",
       lastName: "",
@@ -60,26 +61,26 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
             editMode={true}
             formik={formik}
             fieldName="firstName"
-            label="First Name"
+            label="First Name *"
           />
           <RenderTextField
             editMode={true}
             formik={formik}
             fieldName="lastName"
-            label="Last Name"
+            label="Last Name *"
           />
           <RenderTextField
             editMode={true}
             formik={formik}
             fieldName="email"
-            label="Email"
+            label="Email *"
             type="email"
           />
           <RenderSelectField
             editMode={true}
             formik={formik}
             fieldName="role"
-            label="Role"
+            label="Role *"
             options={USER_ROLE_OPTIONS}
           />
           <Typography variant="caption" color="textSecondary" sx={{ mt: 1 }}>
@@ -89,7 +90,7 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button disabled={submitting} onClick={formik.handleSubmit} variant="contained">
+        <Button disabled={submitting || !formik.isValid} onClick={formik.handleSubmit} variant="contained">
           Create User
         </Button>
       </DialogActions>

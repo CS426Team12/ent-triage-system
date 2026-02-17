@@ -2,14 +2,14 @@ import React from "react";
 import { Grid, Typography, Box, Paper, Stack, Tabs, Tab } from "@mui/material";
 import { Assessment } from "@mui/icons-material";
 import SearchableDataGrid from "../components/grid/SearchableDataGrid";
-import mockData from "../../mockData/triageCaseMockData.json";
-import { triageCaseColumnDefs } from "../utils/coldefs/triageCase";
+import { unreviewedColDefs } from "../utils/coldefs/unreviewedTriageCases";
+import { reviewedColDefs } from "../utils/coldefs/reviewedTriageCases";
 import Navbar from "../components/Navbar";
 import { useTriageCases } from "../context/TriageCaseContext";
+import { STATUS_VALUES } from "../utils/consts";
 
 export default function Dashboard() {
-  const { cases, fetchCases, getUnresolvedCases, getResolvedCases } =
-    useTriageCases();
+  const { cases, fetchCases, getUnreviewedCases, getReviewedCases } = useTriageCases(); 
   const [activeTab, setActiveTab] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
 
@@ -34,13 +34,13 @@ export default function Dashboard() {
     }
   }, [fetchCases]);
 
-  const unresolvedCases = React.useMemo(() => {
-    return getUnresolvedCases();
-  }, [getUnresolvedCases]);
+  const unreviewedCases = React.useMemo(() => {
+    return getUnreviewedCases();
+  }, [getUnreviewedCases]);
 
-  const resolvedCases = React.useMemo(() => {
-    return getResolvedCases();
-  }, [getResolvedCases]);
+  const reviewedCases = React.useMemo(() => {
+    return getReviewedCases();
+  }, [getReviewedCases]);
 
   return (
     <>
@@ -87,26 +87,26 @@ export default function Dashboard() {
                   bgcolor: "background.paper",
                 }}>
                 <Tab
-                  label={`Unresolved Cases (${unresolvedCases?.length || 0})`}
+                  label={`Unreviewed Cases (${unreviewedCases?.length || 0})`}
                   sx={{ textTransform: "none", fontWeight: 500 }}
                 />
                 <Tab
-                  label={`Resolved Cases (${resolvedCases?.length || 0})`}
+                  label={`Reviewed Cases (${reviewedCases?.length || 0})`}
                   sx={{ textTransform: "none", fontWeight: 500 }}
                 />
               </Tabs>
               <Box sx={{ height: "70vh", p: 2 }}>
                 {activeTab === 0 && (
                   <SearchableDataGrid
-                    rowData={unresolvedCases || []}
-                    columnDefs={triageCaseColumnDefs}
+                    rowData={unreviewedCases || []}
+                    columnDefs={unreviewedColDefs}
                     loading={loading}
                   />
                 )}
                 {activeTab === 1 && (
                   <SearchableDataGrid
-                    rowData={resolvedCases || []}
-                    columnDefs={triageCaseColumnDefs}
+                    rowData={reviewedCases || []}
+                    columnDefs={reviewedColDefs}
                     loading={loading}
                   />
                 )}

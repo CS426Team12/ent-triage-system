@@ -9,3 +9,14 @@ export const getChangedFields = (initial, current) => {
 
   return changed;
 };
+
+export const stringToBool = (value) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value !== 'string') return value;
+  
+  const lower = value.toLowerCase();
+  if (lower === 'true') return true;
+  if (lower === 'false') return false;
+  
+  return value;
+};
