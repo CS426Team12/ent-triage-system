@@ -174,22 +174,6 @@ def get_specific_case(
         if not case:
             logger.warning(f"GET /triage-cases/{id} - case not found")
             raise HTTPException(status_code=404, detail="Triage case not found")
-        
-        try:
-            audit_meta = get_audit_meta(request) if request is not None else {"ip": None}
-            AuditService.create_log(
-                db,
-                action="VIEW_CASE",
-                status="SUCCESS",
-                actor_id=current_user.userID,
-                actor_type=current_user.role,
-                resource_type="TRIAGE_CASE",
-                resource_id=case.caseID,
-                fields_modified=None,
-                ip=audit_meta.get("ip"),
-            )
-        except Exception:
-            logger.exception("Failed to write audit log for viewing triage case")
 
         return build_case_public(case, db)
     except HTTPException:
