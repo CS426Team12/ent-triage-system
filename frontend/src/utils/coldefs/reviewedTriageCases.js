@@ -26,7 +26,7 @@ export const reviewedColDefs = [
     filter: 'agTextColumnFilter',
     valueGetter: (params) => {
       return concatNameValueGetter(params.data.firstName, params.data.lastName);
-    }
+    },
   },
   {
     headerName: 'Scheduled Date',

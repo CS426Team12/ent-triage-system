@@ -2,6 +2,7 @@
   display: none !important; /* removing sort order number */
 }
 
-.ag-cell-focus, .ag-cell-no-focus {
+.ag-cell-focus,
+.ag-cell-no-focus {
   border: none !important; /* removing border when clicking on individual cells */
 }

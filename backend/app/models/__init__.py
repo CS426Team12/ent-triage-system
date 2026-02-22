@@ -11,6 +11,9 @@ from .models import (
   TriageCaseReview,
   TriageCasePublic,
   TriageCasesPublic,
+  TriageCaseChangelog,
+  PatientPublic,
+  PatientChangelog
 )
 from .auditLog import (
   AuditLog,

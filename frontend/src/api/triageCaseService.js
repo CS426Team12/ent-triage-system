@@ -1,6 +1,6 @@
 import apiClient from "./axios";
 
-class TriageCaseApi {
+class TriageCaseService {
   async getAllCases() {
     const res = await apiClient.get('triage-cases/');
     return res.data;
@@ -17,15 +17,20 @@ class TriageCaseApi {
   }
 
   async updateCase(id, updateData) {
-    const res = await apiClient.put(`/triage-cases/${id}`, updateData);
+    const res = await apiClient.patch(`/triage-cases/${id}`, updateData);
     return res.data;
   }
 
   async reviewCase(id, updateData) {
-  const res = await apiClient.patch(`/triage-cases/${id}/review`, updateData);
-  return res.data;
+    const res = await apiClient.patch(`/triage-cases/${id}/review`, updateData);
+    return res.data;
+  }
+
+  async getCaseChangelog(id) {
+    const res = await apiClient.get(`/triage-cases/${id}/changelog`);
+    return res.data;
   }
 }
 
-export const triageCaseApi = new TriageCaseApi();
-export default TriageCaseApi;
+export const triageCaseService = new TriageCaseService();
+export default TriageCaseService;

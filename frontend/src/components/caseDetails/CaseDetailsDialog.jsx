@@ -9,29 +9,32 @@ import {
   DialogActions,
   Button,
   Box,
-  Grid,
   Typography,
   Divider,
+  Tabs,
+  Tab,
 } from "@mui/material";
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import RenderTextField from "../fields/RenderTextField";
-import RenderSelectField from "../fields/RenderSelectField";
 import ReviewCaseDialog from "./ReviewCaseDialog";
-import {
-  URGENCY_VALUES,
-  URGENCY_LABELS,
-  RETURNING_PATIENT_OPTIONS,
-  STATUS_VALUES,
-} from "../../utils/consts";
-import { getChangedFields } from "../../utils/utils"
-import dayjs from "dayjs";
-import { UrgencyChangeIndicator } from "../UrgencyChangeIndicator";
+import { CaseDetailsForm } from "./CaseDetailsForm";
+import { CaseHistory } from "./CaseHistory";
+import { STATUS_VALUES } from "../../utils/consts";
+import { getChangedFields } from "../../utils/utils";
 
-export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
+function TabPanel({ children, value, index }) {
+  return (
+    <div hidden={value !== index} style={{ height: "100%" }}>
+      {value === index && <Box sx={{ height: "100%" }}>{children}</Box>}
+    </div>
+  );
+}
+
+export const CaseDetailsDialog = ({ open, onClose, caseData, onSave }) => {
   const [formData, setFormData] = useState({});
   const [editMode, setEditMode] = useState(false);
   const [reviewMode, setReviewMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -49,10 +52,10 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
       DOB: formData.DOB || "",
       contactInfo: formData.contactInfo || "",
       returningPatient: formData.returningPatient ?? false,
+      insuranceInfo: formData.insuranceInfo || "Not Provided",
       overrideUrgency: formData.overrideUrgency
         ? formData.overrideUrgency
         : formData.AIUrgency || "",
-      insuranceInfo: formData.insuranceInfo || "Not Provided",
       overrideSummary: formData.overrideSummary || "",
       clinicianNotes: formData.clinicianNotes || "",
       reviewReason: formData.reviewReason || "",
@@ -60,13 +63,13 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
       scheduledDate: formData.scheduledDate || "",
     },
     validationSchema: Yup.object({
-      firstName: Yup.string().required("Name is required"),
-      lastName: Yup.string().required("Name is required"),
+      firstName: Yup.string().required("First name is required"),
+      lastName: Yup.string().required("Last name is required"),
       DOB: Yup.string().required("DOB is required"),
       contactInfo: Yup.string(),
       insuranceInfo: Yup.string(),
       overrideSummary: Yup.string(),
-      clinicNotes: Yup.string(),
+      clinicianNotes: Yup.string(),
       overrideUrgency: Yup.string().required("Case urgency is required"),
       reviewReason: Yup.string().when("status", {
         is: STATUS_VALUES.REVIEWED,
@@ -93,199 +96,57 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
   };
 
   const handleClose = () => {
-    // prevent closing by clicking background when in edit mode
     if (editMode) {
       return;
     }
+    setActiveTab(0);
     onClose();
   };
 
-  // Fields: Patient Name, DOB, Contact Info, Insurance Info, AiSummary, Override Summary, Clinician Notes
-  // Dropdowns: Urgency Level, Returning Patient (Yes/No)
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const handleReview = async (data) => {
+    await onSave({
+      reviewReason: data.reviewReason,
+      scheduledDate: data.scheduledDate || null,
+      caseID: caseData.caseID,
+    });
+    setReviewMode(false);
+    onClose();
+  };
 
   return (
     <>
       <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
         <DialogTitle>
-          <Typography sx={{ fontWeight: 600 }}>Case Details</Typography>
+          <Typography sx={{ fontWeight: 600 }}>Case View</Typography>
         </DialogTitle>
         <Divider />
-        <DialogContent>
-          <Grid container spacing={4}>
-            <Grid>
-              {/* Left side content */}
-              <Typography variant="h8" sx={{ fontWeight: 600 }}>
-                Patient Information
-              </Typography>
-              <Box mt={2} display="flex" flexDirection="column" gap={2}>
-                <RenderTextField
-                  editMode={editMode}
-                  formik={formik}
-                  fieldName="firstName"
-                  label="First Name *"
-                />
-                <RenderTextField
-                  editMode={editMode}
-                  formik={formik}
-                  fieldName="lastName"
-                  label="Last Name *"
-                />
-                <RenderTextField
-                  editMode={editMode}
-                  formik={formik}
-                  fieldName="DOB"
-                  label="Date of Birth *"
-                  type="date"
-                />
-                <RenderTextField
-                  editMode={editMode}
-                  formik={formik}
-                  fieldName="contactInfo"
-                  label="Contact Information"
-                />
-                <RenderTextField
-                  editMode={editMode}
-                  formik={formik}
-                  fieldName="insuranceInfo"
-                  label="Insurance Info"
-                />
-                <RenderSelectField
-                  editMode={editMode}
-                  formik={formik}
-                  fieldName="returningPatient"
-                  label="Returning Patient"
-                  options={RETURNING_PATIENT_OPTIONS}
-                />
-              </Box>
-            </Grid>
-            <Box
-              sx={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-              }}
-            >
-              {/* Right side content */}
-              <Typography variant="h8" sx={{ fontWeight: 600 }}>
-                Case Information
-              </Typography>
-              <Box>
-                <Box mb={2}>
-                  <Box display="flex" flexDirection="row" alignItems="center">
-                    <Typography
-                      variant="subtitle2"
-                      color="textSecondary"
-                      sx={{ fontWeight: 500 }}
-                    >
-                      Case Urgency
-                    </Typography>
-                    <UrgencyChangeIndicator
-                      initialUrgency={caseData.AIUrgency}
-                      currentUrgency={
-                        caseData.overrideUrgency || caseData.AIUrgency
-                      }
-                      overrideBy={caseData.overrideUrgencyByEmail}
-                    />
-                  </Box>
-                  <RenderSelectField
-                    editMode={editMode}
-                    formik={formik}
-                    fieldName="overrideUrgency"
-                    label=""
-                    options={Object.values(URGENCY_VALUES).map((v) => ({
-                      value: v,
-                      label: URGENCY_LABELS[v],
-                    }))}
-                    renderChip
-                  />
-                </Box>
-                <Box mb={2}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Date Created
-                  </Typography>
-                  <Typography variant="body2">
-                    {dayjs(caseData.dateCreated).format("h:mm A, MM/DD/YYYY")}
-                  </Typography>
-                </Box>
-                <Typography variant="subtitle2" color="textSecondary">
-                  AI Summary
-                </Typography>
-                <Typography variant="body2">
-                  {caseData.AISummary || "---"}
-                </Typography>
-              </Box>
-              {editMode || formik.values.overrideSummary ? (
-                <RenderTextField
-                  editMode={editMode}
-                  formik={formik}
-                  fieldName="overrideSummary"
-                  label={`Override Summary ${caseData.overrideSummaryByEmail ? `(Last Updated By: ${caseData.overrideSummaryByEmail})` : ""}`}
-                />
-              ) : (
-                <Button onClick={() => setEditMode(true)}>
-                  Override Summary
-                </Button>
-              )}
-              <RenderTextField
-                editMode={editMode}
-                formik={formik}
-                fieldName="clinicianNotes"
-                label="Clinician Notes"
-              />
-
-              {caseData?.status === STATUS_VALUES.REVIEWED && (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <Typography variant="h8" sx={{ fontWeight: 600 }}>
-                    Review Information
-                  </Typography>
-                  <RenderTextField
-                    editMode={false}
-                    formik={formik}
-                    fieldName="reviewReason"
-                    label="Review Reason"
-                  />
-                  <RenderTextField
-                    editMode={false}
-                    formik={formik}
-                    fieldName="reviewedByEmail"
-                    label="Reviewed By"
-                  />
-                  {editMode ? (
-                    <DateTimePicker
-                      label="Scheduled Date"
-                      value={
-                        formik.values.scheduledDate
-                          ? dayjs(formik.values.scheduledDate)
-                          : null
-                      }
-                      onChange={(newValue) => {
-                        formik.setFieldValue(
-                          "scheduledDate",
-                          newValue ? newValue : null,
-                        );
-                      }}
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          name: "scheduledDate",
-                          onBlur: formik.handleBlur,
-                        },
-                      }}
-                    />
-                  ) : (
-                    <RenderTextField
-                      editMode={false}
-                      formik={formik}
-                      fieldName="scheduledDate"
-                      label="Scheduled Date"
-                      type="datetime-local"
-                    />
-                  )}
-                </Box>
-              )}
-            </Box>
-          </Grid>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          sx={{ borderBottom: 1, borderColor: "divider", px: 3 }}
+        >
+          <Tab label="Details" sx={{ textTransform: "none" }} />
+          <Tab label="History" sx={{ textTransform: "none" }} />
+        </Tabs>
+        <DialogContent sx={{ minHeight: "60vh" }}>
+          <TabPanel value={activeTab} index={0}>
+            <CaseDetailsForm
+              formik={formik}
+              caseData={caseData}
+              editMode={editMode}
+              setEditMode={setEditMode}
+            />
+          </TabPanel>
+          <TabPanel value={activeTab} index={1}>
+            <CaseHistory
+              caseId={caseData?.caseID}
+              patientId={caseData?.patientID}
+            />
+          </TabPanel>
         </DialogContent>
         <DialogActions>
           {editMode ? (
@@ -308,11 +169,15 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
             </>
           ) : (
             <>
-              <Button onClick={() => setEditMode(true)} variant="contained">
-                Edit
-              </Button>
-              {formData?.status !== STATUS_VALUES.REVIEWED && (
-                <Button onClick={handleOpenResolve}>Review</Button>
+              {activeTab === 0 && (
+                <>
+                  <Button onClick={() => setEditMode(true)} variant="contained">
+                    Edit
+                  </Button>
+                  {formData?.status !== STATUS_VALUES.REVIEWED && (
+                    <Button onClick={handleOpenResolve}>Review</Button>
+                  )}
+                </>
               )}
               <Button onClick={onClose}>Close</Button>
             </>
@@ -322,16 +187,8 @@ export default function CaseDetailsDialog({ open, onClose, caseData, onSave }) {
       <ReviewCaseDialog
         open={reviewMode}
         onClose={() => setReviewMode(false)}
-        onReview={(data) => {
-          onSave({
-            reviewReason: data.reviewReason,
-            scheduledDate: data.scheduledDate || null,
-            caseID: caseData.caseID,
-          });
-          setReviewMode(false);
-          onClose();
-        }}
+        onReview={handleReview}
       />
     </>
   );
-}
+};

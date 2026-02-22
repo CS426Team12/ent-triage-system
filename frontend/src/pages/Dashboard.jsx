@@ -2,15 +2,14 @@ import React from "react";
 import { Grid, Typography, Box, Paper, Stack, Tabs, Tab } from "@mui/material";
 import { Assessment } from "@mui/icons-material";
 import SearchableDataGrid from "../components/grid/SearchableDataGrid";
-import mockData from "../../mockData/triageCaseMockData.json";
 import { unreviewedColDefs } from "../utils/coldefs/unreviewedTriageCases";
 import { reviewedColDefs } from "../utils/coldefs/reviewedTriageCases";
 import Navbar from "../components/Navbar";
 import { useTriageCases } from "../context/TriageCaseContext";
+import { STATUS_VALUES } from "../utils/consts";
 
 export default function Dashboard() {
-  const { cases, fetchCases, getUnreviewedCases, getReviewedCases } =
-    useTriageCases();
+  const { cases, fetchCases, getUnreviewedCases, getReviewedCases } = useTriageCases(); 
   const [activeTab, setActiveTab] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
 

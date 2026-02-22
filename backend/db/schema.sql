@@ -1,68 +1,109 @@
 CREATE SCHEMA IF NOT EXISTS ent;
 SET search_path TO ent, public;
 
+-- ============================================================
+-- ENUMS
+-- ============================================================
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'urgency_level_enum') THEN
-        CREATE TYPE urgency_level_enum AS ENUM ('low', 'medium', 'high');
+        CREATE TYPE urgency_level_enum AS ENUM ('routine', 'semi-urgent', 'urgent');
     END IF;
 END$$;
 
-SET search_path TO ent, public;
-
+-- ============================================================
+-- USER
+-- ============================================================
 CREATE TABLE "User" (
     "userID"       UUID PRIMARY KEY,
     "firstName"    TEXT NOT NULL,
+    "lastName"     TEXT NOT NULL,
+    "email"        TEXT UNIQUE,
     "role"         TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
-    "lastLogin"    DATE,
-    "lastName"     TEXT NOT NULL,
-    "email"        TEXT UNIQUE
+    "lastLogin"    TIMESTAMPTZ
 );
 
+-- ============================================================
+-- PATIENT
+-- ============================================================
 CREATE TABLE "Patient" (
     "patientID"          UUID PRIMARY KEY,
     "firstName"          TEXT NOT NULL,
+    "lastName"           TEXT NOT NULL,
     "DOB"                DATE,
     "contactInfo"        TEXT,
     "insuranceInfo"      TEXT,
     "returningPatient"   BOOLEAN DEFAULT FALSE,
     "languagePreference" TEXT,
-    "verified"           BOOLEAN DEFAULT FALSE,
-    "lastName"           TEXT NOT NULL
+    "verified"           BOOLEAN DEFAULT FALSE
 );
 
+-- ============================================================
+-- PATIENT CHANGELOG 
+-- ============================================================
+CREATE TABLE "PatientChangelog" (
+    "id"         UUID PRIMARY KEY,
+    "patientID"  UUID NOT NULL,
+    "changedAt"  TIMESTAMPTZ DEFAULT NOW(),
+    "changedBy"  UUID NOT NULL,
+    "fieldName"  TEXT NOT NULL,
+    "oldValue"   TEXT,
+    "newValue"   TEXT,
+    CONSTRAINT fk_patchangelog_patient
+        FOREIGN KEY ("patientID") REFERENCES "Patient"("patientID") ON DELETE CASCADE,
+    CONSTRAINT fk_patchangelog_user
+        FOREIGN KEY ("changedBy") REFERENCES "User"("userID")
+);
+
+-- ============================================================
+-- TRIAGE CASE
+-- ============================================================
 CREATE TABLE "TriageCase" (
-    "caseID"              UUID PRIMARY KEY,
-    "patientID"           UUID NOT NULL,
-    "transcript"          TEXT,
-    "AIConfidence"        DOUBLE PRECISION,
-    "AISummary"           TEXT,
-    "status"              TEXT,
-    "dateCreated"         DATE DEFAULT CURRENT_DATE,
-    "createdBy"           UUID,
-    "reviewReason"        TEXT,
-    "reviewTimestamp"     TIMESTAMPTZ,
-    "reviewedBy"          UUID,
-    "scheduledDate"       TIMESTAMPTZ,
-    "overrideSummary"     TEXT,
-    "overrideSummaryBy"   UUID,
-    "AIUrgency"           urgency_level_enum,
-    "overrideUrgency"     urgency_level_enum,
-    "overrideUrgencyBy"   UUID,
-    "clinicianNotes"      TEXT,
+    "caseID"            UUID PRIMARY KEY,
+    "patientID"         UUID NOT NULL,
+    "transcript"        TEXT,
+    "AIConfidence"      DOUBLE PRECISION,
+    "AISummary"         TEXT,
+    "status"            TEXT DEFAULT 'unreviewed',
+    "dateCreated"       TIMESTAMPTZ DEFAULT NOW(),
+    "createdBy"         UUID,
+    "reviewReason"      TEXT,
+    "reviewTimestamp"   TIMESTAMPTZ,
+    "reviewedBy"        UUID,
+    "scheduledDate"     TIMESTAMPTZ,
+    "overrideSummary"   TEXT,
+    "AIUrgency"         urgency_level_enum,
+    "overrideUrgency"   urgency_level_enum,
+    "clinicianNotes"    TEXT,      
     CONSTRAINT fk_triage_patient
         FOREIGN KEY ("patientID") REFERENCES "Patient"("patientID") ON DELETE CASCADE,
     CONSTRAINT fk_triage_created_by
         FOREIGN KEY ("createdBy") REFERENCES "User"("userID"),
     CONSTRAINT fk_triage_reviewed_by
-        FOREIGN KEY ("reviewedBy") REFERENCES "User"("userID"),
-    CONSTRAINT fk_triage_override_summary_by
-        FOREIGN KEY ("overrideSummaryBy") REFERENCES "User"("userID"),
-    CONSTRAINT fk_triage_override_urgency_by
-        FOREIGN KEY ("overrideUrgencyBy") REFERENCES "User"("userID")
+        FOREIGN KEY ("reviewedBy") REFERENCES "User"("userID")
 );
 
+-- ============================================================
+-- TRIAGE CASE CHANGELOG
+-- ============================================================
+CREATE TABLE "TriageCaseChangelog" (
+    "id"        UUID PRIMARY KEY,
+    "caseID"    UUID NOT NULL,
+    "changedAt" TIMESTAMPTZ DEFAULT NOW(),
+    "changedBy" UUID NOT NULL,
+    "fieldName" TEXT NOT NULL,
+    "oldValue"  TEXT,
+    "newValue"  TEXT,
+    CONSTRAINT fk_casechangelog_case
+        FOREIGN KEY ("caseID") REFERENCES "TriageCase"("caseID") ON DELETE CASCADE,
+    CONSTRAINT fk_casechangelog_user
+        FOREIGN KEY ("changedBy") REFERENCES "User"("userID")
+);
+
+-- ============================================================
+-- MEDICAL IDENTIFIERS
+-- ============================================================
 CREATE TABLE "MedicalIdentifiers" (
     "medicalID" UUID PRIMARY KEY,
     "patientID" UUID NOT NULL,
@@ -74,6 +115,9 @@ CREATE TABLE "MedicalIdentifiers" (
         FOREIGN KEY ("patientID") REFERENCES "Patient"("patientID") ON DELETE CASCADE
 );
 
+-- ============================================================
+-- TRANSCRIPT
+-- ============================================================
 CREATE TABLE "Transcript" (
     "transcriptID"      UUID PRIMARY KEY,
     "caseID"            UUID NOT NULL,
@@ -84,6 +128,9 @@ CREATE TABLE "Transcript" (
         FOREIGN KEY ("caseID") REFERENCES "TriageCase"("caseID") ON DELETE CASCADE
 );
 
+-- ============================================================
+-- AI INFERENCE
+-- ============================================================
 CREATE TABLE "AIInference" (
     "inferenceID"     UUID PRIMARY KEY,
     "caseID"          UUID NOT NULL,
@@ -97,6 +144,9 @@ CREATE TABLE "AIInference" (
         FOREIGN KEY ("caseID") REFERENCES "TriageCase"("caseID") ON DELETE CASCADE
 );
 
+-- ============================================================
+-- AUDIT LOG
+-- ============================================================
 CREATE TABLE "AuditLog" (
     "logID"         UUID PRIMARY KEY,
     "actorID"        UUID,
@@ -115,15 +165,15 @@ CREATE TABLE "AuditLog" (
         FOREIGN KEY ("actorID") REFERENCES "User"("userID")
 );
 
-CREATE INDEX idx_triage_patient   ON "TriageCase"("patientID");
-CREATE INDEX idx_transcript_case  ON "Transcript"("caseID");
-CREATE INDEX idx_aiinference_case ON "AIInference"("caseID");
-CREATE INDEX idx_audit_resource       ON "AuditLog"("resourceID");
-
-ALTER TYPE urgency_level_enum RENAME VALUE 'low' TO 'routine';
-ALTER TYPE urgency_level_enum RENAME VALUE 'medium' TO 'semi-urgent';
-ALTER TYPE urgency_level_enum RENAME VALUE 'high' TO 'urgent';
-
+-- ============================================================
+-- INDEXES
+-- ============================================================
+CREATE INDEX idx_triage_patient        ON "TriageCase"("patientID");
+CREATE INDEX idx_transcript_case       ON "Transcript"("caseID");
+CREATE INDEX idx_aiinference_case      ON "AIInference"("caseID");
+CREATE INDEX idx_audit_resource            ON "AuditLog"("resourceID");
+CREATE INDEX idx_patchangelog_patient  ON "PatientChangelog"("patientID");
+CREATE INDEX idx_casechangelog_case    ON "TriageCaseChangelog"("caseID");
 CREATE OR REPLACE FUNCTION ent.validate_audit_resource()
 RETURNS TRIGGER AS $$
 BEGIN

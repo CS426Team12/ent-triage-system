@@ -39,13 +39,9 @@ class User(SQLModel, table=True):
     firstName: str
     role: str
     passwordHash: str
-    lastLogin: datetime = Field(default_factory=datetime.utcnow)
+    lastLogin: datetime = Field(default_factory=datetime.now)
     lastName: str
     email: str = Field(unique=True)
-
-
-
-
 
 class Message(SQLModel):
     message: str
@@ -80,12 +76,27 @@ class PatientUpdate(SQLModel):
     languagePreference: Optional[str] = None
     verified: Optional[bool] = None
 
+class PatientPublic(PatientBase):
+    patientID: uuid.UUID
+
+class PatientChangelog(SQLModel, table=True):
+    __tablename__ = "PatientChangelog"
+    __table_args__ = {"schema": "ent"}
+    
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    patientID: uuid.UUID = Field(foreign_key="ent.Patient.patientID")
+    changedAt: datetime = Field(default_factory=datetime.now    )
+    changedBy: uuid.UUID = Field(foreign_key="ent.User.userID")
+    fieldName: str = Field(max_length=100)
+    oldValue: Optional[str] = None
+    newValue: Optional[str] = None
+
 # ============= TRIAGE CASE MODELS =============
 class TriageCaseBase(SQLModel):
     transcript: Optional[str] = None
     AIConfidence: Optional[float] = None
     AISummary: Optional[str] = None
-    status: str = "pending"
+    status: str = "unreviewed"
     AIUrgency: Optional[str] = None
     clinicianNotes: Optional[str] = None
     overrideSummary: Optional[str] = None
@@ -97,14 +108,12 @@ class TriageCase(TriageCaseBase, table=True):
     
     caseID: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     patientID: uuid.UUID = Field(foreign_key="ent.Patient.patientID")
-    dateCreated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    dateCreated: datetime = Field(default_factory=datetime.now)
     createdBy: Optional[uuid.UUID] = None
     reviewReason: Optional[str] = None
     reviewTimestamp: Optional[datetime] = None
     reviewedBy: Optional[uuid.UUID] = None
     scheduledDate: Optional[datetime] = None
-    overrideSummaryBy: Optional[uuid.UUID] = None
-    overrideUrgencyBy: Optional[uuid.UUID] = None
 
 class TriageCaseCreate(SQLModel):
     patientID: uuid.UUID
@@ -144,11 +153,20 @@ class TriageCasePublic(TriageCaseBase, PatientBase):
     reviewedBy: Optional[uuid.UUID] = None
     reviewedByEmail: Optional[str] = None
     scheduledDate: Optional[datetime] = None
-    overrideSummaryBy: Optional[uuid.UUID] = None
-    overrideSummaryByEmail: Optional[str] = None
-    overrideUrgencyBy: Optional[uuid.UUID] = None
-    overrideUrgencyByEmail: Optional[str] = None
+    previousUrgency: Optional[str] = None
 
 class TriageCasesPublic(SQLModel):
     cases: list[TriageCasePublic] 
     count: int
+
+class TriageCaseChangelog(SQLModel, table=True):
+    __tablename__ = "TriageCaseChangelog"
+    __table_args__ = {"schema": "ent"}
+    
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    caseID: uuid.UUID = Field(foreign_key="ent.TriageCase.caseID")
+    changedAt: datetime = Field(default_factory=datetime.now)
+    changedBy: uuid.UUID = Field(foreign_key="ent.User.userID")
+    fieldName: str = Field(max_length=100)
+    oldValue: Optional[str] = None
+    newValue: Optional[str] = None

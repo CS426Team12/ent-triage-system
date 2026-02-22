@@ -4,9 +4,10 @@ import { Edit } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { URGENCY_PRIORITY, URGENCY_LABELS } from "../utils/consts";
 import { URGENCY_COLORS } from "../theme";
-import CaseDetailsDialog from "../components/caseDetails/CaseDetailsDialog";
+import { CaseDetailsDialog } from "../components/caseDetails/CaseDetailsDialog";
 import EditUserDialog from "../components/admin/EditUserDialog";
 import { useTriageCases } from "../context/TriageCaseContext";
+import { usePatients } from "../context/PatientContext";
 import { userService } from "../api/userService";
 import { toast } from "../utils/toast";
 import { UrgencyChangeIndicator } from "../components/UrgencyChangeIndicator";
@@ -34,6 +35,7 @@ export const UrgencyCellRenderer = (params) => {
 export const EditCaseButtonCellRenderer = (params) => {
   const [open, setOpen] = React.useState(false);
   const { updateCase, reviewCase } = useTriageCases();
+  const { updatePatient } = usePatients();
   const caseData = params.data;
 
   const handleOpen = () => {
@@ -46,20 +48,57 @@ export const EditCaseButtonCellRenderer = (params) => {
 
   const handleSave = async (updatedData) => {
     if (Object.keys(updatedData).length === 0) return;
-    console.log(updatedData)
+    console.log(updatedData);
     const isReviewing = Boolean(updatedData.reviewReason);
+
     try {
       if (isReviewing) {
+        // review case (no patient updates during review)
         await reviewCase(caseData.caseID, {
           reviewReason: updatedData.reviewReason,
           scheduledDate: updatedData.scheduledDate || null,
         });
+        toast.success("Successfully reviewed case");
       } else {
-        await updateCase(caseData.caseID, updatedData);
+        // regular update - split patient and case fields
+        const patientFields = [
+          "firstName",
+          "lastName",
+          "DOB",
+          "contactInfo",
+          "insuranceInfo",
+          "returningPatient",
+        ];
+        const caseFields = [
+          "overrideUrgency",
+          "overrideSummary",
+          "clinicianNotes",
+          "scheduledDate",
+        ];
+
+        const patientUpdates = {};
+        const caseUpdates = {};
+
+        Object.keys(updatedData).forEach((key) => {
+          if (patientFields.includes(key)) {
+            patientUpdates[key] = updatedData[key];
+          } else if (caseFields.includes(key)) {
+            caseUpdates[key] = updatedData[key];
+          }
+        });
+
+        // update patient if there are patient changes
+        if (Object.keys(patientUpdates).length > 0) {
+          await updatePatient(caseData.patientID, patientUpdates);
+        }
+
+        // update case if there are case changes
+        if (Object.keys(caseUpdates).length > 0) {
+          await updateCase(caseData.caseID, caseUpdates);
+        }
+
+        toast.success("Successfully updated case");
       }
-      toast.success(
-        `Successfully ${isReviewing ? "reviewed" : "updated"} case`
-      );
     } catch (err) {
       toast.error("Failed to update case.");
       console.error("Failed to update case", err);
@@ -128,14 +167,14 @@ export const EditUserButtonCellRenderer = (params) => {
 };
 
 export const UrgencyChangeCellRenderer = (params) => {
-  const { AIUrgency, overrideUrgency, overrideUrgencyByEmail } = params.data;
-  const currentUrgency = overrideUrgency || AIUrgency;
+  const { previousUrgency, overrideUrgency, AIUrgency } = params.data;
+  const current = overrideUrgency || AIUrgency;
+  const prev = previousUrgency || AIUrgency;
 
   return (
     <UrgencyChangeIndicator
-      initialUrgency={AIUrgency}
-      currentUrgency={currentUrgency}
-      overrideBy={overrideUrgencyByEmail}
+      prevUrgency={prev}
+      currentUrgency={current}
     />
   );
 };
