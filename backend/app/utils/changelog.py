@@ -28,6 +28,10 @@ def log_changes(
                 
             old_value = old_dict.get(field_name)
             
+            # if overrideUrgency has no previous value, fall back to AIUrgency as the "previous" for comparison purposes
+            if field_name == 'overrideUrgency' and old_value is None:
+                old_value = old_dict.get('AIUrgency')
+            
             if old_value == new_value:
                 continue
                 
