@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     DB_PORT: str = "5432"
     DB_NAME: str
     
+    GCAL_CLIENT_EMAIL: str
+    GCAL_PRIVATE_KEY: str
+    
     @property
     def SQLALCHEMY_DATABASE_URL(self) -> str:
         return f"postgresql://{self.DB_USER}:{self.DB_PW}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

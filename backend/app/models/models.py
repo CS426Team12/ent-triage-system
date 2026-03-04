@@ -26,6 +26,7 @@ class UserPublic(SQLModel):
     email: str
     role: str
     lastLogin: Optional[datetime] = None
+    calendarID: Optional[str] = None
 
 class UsersList(SQLModel):
     data: list[UserPublic]
@@ -42,6 +43,7 @@ class User(SQLModel, table=True):
     lastLogin: datetime = Field(default_factory=datetime.now)
     lastName: str
     email: str = Field(unique=True)
+    calendarID: Optional[str] = None
 
 class Message(SQLModel):
     message: str

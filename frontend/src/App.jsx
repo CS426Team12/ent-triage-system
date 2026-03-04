@@ -17,6 +17,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ToastContainer } from "react-toastify";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import Calendar from "./pages/Calendar.jsx";
 
 function App() {
   return (
@@ -55,6 +56,14 @@ function App() {
                     element={
                       <ProtectedRoute requiredRole="admin">
                         <AdminPortal />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar"
+                    element={
+                      <ProtectedRoute>
+                        <Calendar />
                       </ProtectedRoute>
                     }
                   />
