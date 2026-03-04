@@ -42,3 +42,6 @@ postgres_data/
 
 # Alembic
 alembic/versions/*.pyc
+
+# Testing
+.coverage

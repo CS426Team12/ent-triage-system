@@ -11,3 +11,7 @@ python-multipart
 python-jose[cryptography]
 pydantic-settings
 redis
+pytest
+httpx
+pytest-asyncio
+pytest-cov
