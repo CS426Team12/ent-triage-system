@@ -188,6 +188,8 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onSave }) => {
         open={reviewMode}
         onClose={() => setReviewMode(false)}
         onReview={handleReview}
+        caseID={caseData?.caseID}
+        patientName={`${formData.firstName || ""} ${formData.lastName || ""}`}
       />
     </>
   );

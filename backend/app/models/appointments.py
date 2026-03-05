@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 from uuid import uuid4
 import uuid
+from pydantic import BaseModel
 
 class Appointment(SQLModel, table=True):
   __tablename__ = "Appointment"

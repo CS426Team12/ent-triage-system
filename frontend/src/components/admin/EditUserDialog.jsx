@@ -9,22 +9,17 @@ import {
   Button,
   Grid,
   Typography,
-  Divider
+  Divider,
 } from "@mui/material";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
 import { USER_ROLE_OPTIONS } from "../../utils/consts";
-import { getChangedFields } from "../../utils/utils"
+import { getChangedFields } from "../../utils/utils";
 
-export default function EditUserDialog({
-  open,
-  onClose,
-  userData,
-  onSave,
-}) {
+export default function EditUserDialog({ open, onClose, userData, onSave, onCreateCalendar }) {
   const [editMode, setEditMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
+  console.log(userData)
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -55,17 +50,21 @@ export default function EditUserDialog({
     onClose();
   };
 
+  const handleCreateCalendar = async () => {
+    setSubmitting(true);
+    await onCreateCalendar();
+    setSubmitting(false);
+  }
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          <Typography sx={{ fontWeight: 600 }}>
-            Edit User Details
-          </Typography>
-        </DialogTitle>
+      <DialogTitle>
+        <Typography sx={{ fontWeight: 600 }}>Edit User Details</Typography>
+      </DialogTitle>
       <Divider />
       <DialogContent>
         <Grid container spacing={2}>
-          <Grid size={6}>
+          <Grid item size={6}>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               First Name
             </Typography>
@@ -75,7 +74,7 @@ export default function EditUserDialog({
               fieldName="firstName"
             />
           </Grid>
-          <Grid size={6}>
+          <Grid item size={6}>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               Last Name
             </Typography>
@@ -85,7 +84,7 @@ export default function EditUserDialog({
               fieldName="lastName"
             />
           </Grid>
-          <Grid size={12}>
+          <Grid item size={12}>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               Email
             </Typography>
@@ -96,7 +95,7 @@ export default function EditUserDialog({
               type="email"
             />
           </Grid>
-          <Grid size={12}>
+          <Grid item size={12}>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               Role
             </Typography>
@@ -109,22 +108,41 @@ export default function EditUserDialog({
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        {editMode ? (
-          <>
-            <Button onClick={() => setEditMode(false)}>Cancel</Button>
-            <Button disabled={submitting} onClick={formik.handleSubmit} variant="contained">
-              Save
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button onClick={() => setEditMode(true)} variant="contained">
-              Edit
-            </Button>
-            <Button onClick={handleClose}>Close</Button>
-          </>
-        )}
+      <DialogActions sx={{ justifyContent: "space-between" }}>
+        <Grid item>
+          {userData?.role === "physician" &&
+            !userData?.calendarID &&
+            editMode && (
+              <Button
+                disabled={submitting}
+                onClick={handleCreateCalendar}
+                variant="contained"
+              >
+                Create Calendar
+              </Button>
+            )}
+        </Grid>
+        <Grid item>
+          {editMode ? (
+            <>
+              <Button onClick={() => setEditMode(false)}>Cancel</Button>
+              <Button
+                disabled={submitting}
+                onClick={formik.handleSubmit}
+                variant="contained"
+              >
+                Save
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={() => setEditMode(true)} variant="contained">
+                Edit
+              </Button>
+              <Button onClick={handleClose}>Close</Button>
+            </>
+          )}
+        </Grid>
       </DialogActions>
     </Dialog>
   );

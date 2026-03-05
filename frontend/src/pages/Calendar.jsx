@@ -15,8 +15,6 @@ import { CalendarMonth } from "@mui/icons-material";
 import { userService } from "../api/userService";
 import { toast } from "../utils/toast";
 
-const GCAL_COLORS = ["#0EA5E9", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444"];
-
 const VIEW_MODES = [
   { value: "WEEK", label: "Week" },
   { value: "MONTH", label: "Month" },
@@ -117,7 +115,7 @@ export default function CalendarPage() {
                   <Stack direction="row" spacing={1} flexWrap="wrap">
                     {physicians
                       .filter((p) => p.calendarID)
-                      .map((p, idx) => (
+                      .map((p) => (
                         <Tooltip
                           key={p.userID}
                           title={`Dr. ${p.firstName} ${p.lastName}`}
@@ -138,16 +136,16 @@ export default function CalendarPage() {
                               px: 1.5,
                               py: 0.5,
                               borderRadius: 20,
-                              border: `1px solid ${GCAL_COLORS[idx % GCAL_COLORS.length]}40`,
+                              border: `1px solid ${p.calendarColor}40`,
                               bgcolor:
                                 selectedPhysician === p.userID
-                                  ? `${GCAL_COLORS[idx % GCAL_COLORS.length]}30`
-                                  : `${GCAL_COLORS[idx % GCAL_COLORS.length]}12`,
+                                  ? `${p.calendarColor}30`
+                                  : `${p.calendarColor}12`,
                               cursor: "pointer",
                               transition: "all .15s",
                               outline:
                                 selectedPhysician === p.userID
-                                  ? `2px solid ${GCAL_COLORS[idx % GCAL_COLORS.length]}80`
+                                  ? `2px solid ${p.calendarColor}80`
                                   : "none",
                             }}
                           >
@@ -156,16 +154,14 @@ export default function CalendarPage() {
                                 width: 8,
                                 height: 8,
                                 borderRadius: "50%",
-                                bgcolor: GCAL_COLORS[idx % GCAL_COLORS.length],
+                                bgcolor: p.calendarColor,
                                 flexShrink: 0,
                               }}
                             />
                             <Typography
                               variant="caption"
                               fontWeight={600}
-                              sx={{
-                                color: GCAL_COLORS[idx % GCAL_COLORS.length],
-                              }}
+                              sx={{ color: p.calendarColor }}
                             >
                               Dr. {p.lastName}
                             </Typography>
@@ -204,7 +200,6 @@ export default function CalendarPage() {
                     <CircularProgress />
                   </Box>
                 )}
-
                 {!loading && embedUrl && (
                   <iframe
                     src={embedUrl}

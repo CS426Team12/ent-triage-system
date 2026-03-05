@@ -11,6 +11,7 @@ import { usePatients } from "../context/PatientContext";
 import { userService } from "../api/userService";
 import { toast } from "../utils/toast";
 import { UrgencyChangeIndicator } from "../components/UrgencyChangeIndicator";
+import { calendarManagementService } from "../api/calendarService";
 
 export const UrgencyCellRenderer = (params) => {
   if (!params.value) return null;
@@ -122,7 +123,6 @@ export const EditCaseButtonCellRenderer = (params) => {
 
 export const EditUserButtonCellRenderer = (params) => {
   const [open, setOpen] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
   const userData = params.data;
 
   const handleOpen = () => {
@@ -136,7 +136,6 @@ export const EditUserButtonCellRenderer = (params) => {
   const handleSave = async (updatedData) => {
     if (Object.keys(updatedData).length === 0) return;
     console.log("Saving with data: ", updatedData);
-    setSaving(true);
     try {
       await userService.updateUser(userData.userID, updatedData);
       params.onUserUpdated?.(); //refresh user grid after update
@@ -144,11 +143,19 @@ export const EditUserButtonCellRenderer = (params) => {
       toast.success(`Successfully updated user.`);
     } catch (err) {
       toast.error(`Failed to update user.`);
-      console.log(
-        "Failed to update user: " + (err.message || "Unknown error")
-      );
+      console.log("Failed to update user: " + (err.message || "Unknown error"));
     }
-    setSaving(false);
+  };
+
+  const handleCreateCalendar = async () => {
+    try {
+      await calendarManagementService.createPhysicianCalendar(userData?.userID);
+      params.onUserUpdated?.(); //refresh user grid after update
+      toast.success("Calendar created successfully.");
+    } catch (error) {
+      toast.error("Failed to create calendar. Please try again.");
+      console.error("Failed to create calendar: " + (error.message || "Unknown error"));
+    }
   };
 
   return (
@@ -161,6 +168,7 @@ export const EditUserButtonCellRenderer = (params) => {
         onClose={handleClose}
         userData={userData}
         onSave={handleSave}
+        onCreateCalendar={handleCreateCalendar}
       />
     </>
   );

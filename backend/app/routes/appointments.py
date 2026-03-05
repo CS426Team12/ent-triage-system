@@ -5,7 +5,6 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException, Depends, Request, Query
 from sqlmodel import Session, select
-from pydantic import BaseModel
 
 from app.core.dependencies import get_db
 from app.auth.dependencies import get_current_user
@@ -43,15 +42,11 @@ def get_availability(
                 detail="Physician has no calendar configured — run the setup script",
             )
 
-        result = asyncio.get_event_loop().run_until_complete(
-            asyncio.to_thread(
-                lambda: calendar_service.freebusy().query(body={
+        result = calendar_service.freebusy().query(body={
                     "timeMin": f"{date}T08:00:00Z",
                     "timeMax": f"{date}T17:00:00Z",
                     "items":   [{"id": physician.calendarID}],
                 }).execute()
-            )
-        )
 
         busy_blocks = result["calendars"][physician.calendarID]["busy"]
 
@@ -67,6 +62,9 @@ def get_availability(
     except Exception as e:
         logger.exception(f"GET /appointments/availability - Error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch availability")
+
+
+# ─── GET /appointments ────────────────────────────────────────────────────────
 
 @router.get("/")
 def list_appointments(
@@ -109,6 +107,9 @@ def list_appointments(
         logger.exception(f"GET /appointments - Error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve appointments")
 
+
+# ─── GET /appointments/{appointment_id} ───────────────────────────────────────
+
 @router.get("/{appointment_id}")
 def get_appointment(
     appointment_id: uuid.UUID,
@@ -139,6 +140,9 @@ def get_appointment(
         logger.exception(f"GET /appointments/{appointment_id} - Error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve appointment")
 
+
+# ─── POST /appointments ───────────────────────────────────────────────────────
+
 @router.post("/", status_code=201)
 def create_appointment(
     payload:      AppointmentCreate,
@@ -165,17 +169,16 @@ def create_appointment(
             logger.warning(f"POST /appointments - case not found: {payload.caseID}")
             raise HTTPException(status_code=404, detail="TriageCase not found")
 
-        patient      = db.get(Patient, case.patientID) if case.patientID else None
-        patient_name = f"{patient.firstName} {patient.lastName}" if patient else "Patient"
+        patient       = db.get(Patient, case.patientID) if case.patientID else None
+        patient_name  = f"{patient.firstName} {patient.lastName}" if patient else "Patient"
+        physician_name = f"Dr. {physician.firstName} {physician.lastName}"
 
-        # write to Google Calendar
+        # Write to Google Calendar
         try:
-            event = asyncio.get_event_loop().run_until_complete(
-                asyncio.to_thread(
-                    lambda: calendar_service.events().insert(
+            event = calendar_service.events().insert(
                         calendarId=physician.calendarID,
                         body={
-                            "summary":     f"{patient_name} — Case {payload.caseID}",
+                            "summary":     f"{patient_name}",
                             "description": f"Case ID: {payload.caseID}",
                             "start": {
                                 "dateTime": payload.scheduledAt.isoformat(),
@@ -187,8 +190,6 @@ def create_appointment(
                             },
                         }
                     ).execute()
-                )
-            )
         except Exception as e:
             logger.exception(f"POST /appointments - Google Calendar error: {str(e)}")
             raise HTTPException(status_code=502, detail="Failed to create Google Calendar event")
@@ -239,7 +240,7 @@ def create_appointment(
             "gcalEventId":    event["id"],
             "scheduledAt":    appointment.scheduledAt,
             "scheduledEnd":   appointment.scheduledEnd,
-            "physicianName":  f"Dr. {physician.firstName} {physician.lastName}",
+            "physicianName":  physician_name,
         }
 
     except HTTPException:
@@ -249,6 +250,9 @@ def create_appointment(
         db.rollback()
         logger.exception(f"POST /appointments - Error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create appointment")
+
+
+# ─── PATCH /appointments/{appointment_id} ─────────────────────────────────────
 
 @router.patch("/{appointment_id}")
 def reschedule_appointment(
@@ -283,29 +287,24 @@ def reschedule_appointment(
         new_start = payload.scheduledAt  or appointment.scheduledAt
         new_end   = payload.scheduledEnd or appointment.scheduledEnd
 
-        # delete old Google Calendar event
+        # Delete old Google Calendar event
         try:
-            asyncio.get_event_loop().run_until_complete(
-                asyncio.to_thread(
-                    lambda: calendar_service.events().delete(
+            calendar_service.events().delete(
                         calendarId=appointment.gcalCalendarId,
                         eventId=appointment.gcalEventId,
                     ).execute()
-                )
-            )
         except Exception as e:
             logger.exception(f"PATCH /appointments/{appointment_id} - Google Calendar delete error: {str(e)}")
             raise HTTPException(status_code=502, detail="Failed to delete old Google Calendar event")
 
-        # create new Google Calendar event
-        case         = db.get(TriageCase, appointment.caseID)
-        patient      = db.get(Patient, case.patientID) if case and case.patientID else None
-        patient_name = f"{patient.firstName} {patient.lastName}" if patient else "Patient"
+        # Create new Google Calendar event
+        case          = db.get(TriageCase, appointment.caseID)
+        patient       = db.get(Patient, case.patientID) if case and case.patientID else None
+        patient_name  = f"{patient.firstName} {patient.lastName}" if patient else "Patient"
+        physician_name = f"Dr. {physician.firstName} {physician.lastName}"
 
         try:
-            event = asyncio.get_event_loop().run_until_complete(
-                asyncio.to_thread(
-                    lambda: calendar_service.events().insert(
+            event = calendar_service.events().insert(
                         calendarId=physician.calendarID,
                         body={
                             "summary":     f"{patient_name} — Case {appointment.caseID}",
@@ -320,18 +319,16 @@ def reschedule_appointment(
                             },
                         }
                     ).execute()
-                )
-            )
         except Exception as e:
             logger.exception(f"PATCH /appointments/{appointment_id} - Google Calendar insert error: {str(e)}")
             raise HTTPException(status_code=502, detail="Failed to create new Google Calendar event")
 
-        # mark old row as rescheduled — preserves history
+        # Mark old row as rescheduled — preserves history
         appointment.status      = "rescheduled"
         appointment.cancelledAt = datetime.now(timezone.utc)
         db.add(appointment)
 
-        # new appointment row
+        # New appointment row
         duration = int((new_end - new_start).total_seconds() / 60)
         new_appt  = Appointment(
             appointmentID  = uuid.uuid4(),
@@ -376,7 +373,7 @@ def reschedule_appointment(
             "gcalEventId":    event["id"],
             "scheduledAt":    new_appt.scheduledAt,
             "scheduledEnd":   new_appt.scheduledEnd,
-            "physicianName":  f"Dr. {physician.firstName} {physician.lastName}",
+            "physicianName":  physician_name,
         }
 
     except HTTPException:
@@ -386,6 +383,9 @@ def reschedule_appointment(
         db.rollback()
         logger.exception(f"PATCH /appointments/{appointment_id} - Error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to reschedule appointment")
+
+
+# ─── DELETE /appointments/{appointment_id} ────────────────────────────────────
 
 @router.delete("/{appointment_id}")
 def cancel_appointment(
@@ -406,16 +406,12 @@ def cancel_appointment(
         if appointment.status == "cancelled":
             raise HTTPException(status_code=400, detail="Appointment is already cancelled")
 
-        # remove from Google Calendar
+        # Remove from Google Calendar
         try:
-            asyncio.get_event_loop().run_until_complete(
-                asyncio.to_thread(
-                    lambda: calendar_service.events().delete(
+            calendar_service.events().delete(
                         calendarId=appointment.gcalCalendarId,
                         eventId=appointment.gcalEventId,
                     ).execute()
-                )
-            )
         except Exception as e:
             logger.exception(f"DELETE /appointments/{appointment_id} - Google Calendar error: {str(e)}")
             raise HTTPException(status_code=502, detail="Failed to delete Google Calendar event")
@@ -425,6 +421,7 @@ def cancel_appointment(
         appointment.cancelledAt  = datetime.now(timezone.utc)
         db.add(appointment)
 
+        # Clear case pointer if this was the active appointment
         case = db.get(TriageCase, appointment.caseID)
         if case and case.activeAppointmentID == appointment_id:
             case.activeAppointmentID = None
@@ -459,6 +456,8 @@ def cancel_appointment(
         logger.exception(f"DELETE /appointments/{appointment_id} - Error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to cancel appointment")
 
+
+# ─── Helper ───────────────────────────────────────────────────────────────────
 
 def _build_slots(date: str, busy_blocks: list) -> list:
     """Invert Google freebusy busy blocks into 30-min available/busy slots."""

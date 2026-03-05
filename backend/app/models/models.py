@@ -27,6 +27,7 @@ class UserPublic(SQLModel):
     role: str
     lastLogin: Optional[datetime] = None
     calendarID: Optional[str] = None
+    calendarColor: Optional[str] = None
 
 class UsersList(SQLModel):
     data: list[UserPublic]
@@ -44,6 +45,7 @@ class User(SQLModel, table=True):
     lastName: str
     email: str = Field(unique=True)
     calendarID: Optional[str] = None
+    calendarColor: Optional[str] = None
 
 class Message(SQLModel):
     message: str
@@ -103,6 +105,7 @@ class TriageCaseBase(SQLModel):
     clinicianNotes: Optional[str] = None
     overrideSummary: Optional[str] = None
     overrideUrgency: Optional[str] = None
+    activeAppointmentID: Optional[uuid.UUID] = None
 
 class TriageCase(TriageCaseBase, table=True):
     __tablename__ = "TriageCase"
