@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
@@ -10,16 +10,27 @@ import {
   Grid,
   Typography,
   Divider,
+  Box
 } from "@mui/material";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
 import { USER_ROLE_OPTIONS } from "../../utils/consts";
 import { getChangedFields } from "../../utils/utils";
+import { CalendarColorPicker } from "../CalendarColorPicker";
+import { toast } from "../../utils/toast";
+import { calendarManagementService } from "../../api/calendarService";
 
-export default function EditUserDialog({ open, onClose, userData, onSave, onCreateCalendar }) {
+export default function EditUserDialog({
+  open,
+  onClose,
+  userData,
+  onSave,
+  onUpdated,
+}) {
   const [editMode, setEditMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  console.log(userData)
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -51,10 +62,18 @@ export default function EditUserDialog({ open, onClose, userData, onSave, onCrea
   };
 
   const handleCreateCalendar = async () => {
-    setSubmitting(true);
-    await onCreateCalendar();
-    setSubmitting(false);
-  }
+    try {
+      setSubmitting(true);
+      await calendarManagementService.createPhysicianCalendar(userData?.userID);
+      onUpdated(); //refresh user grid after update
+      toast.success("Calendar created successfully.");
+    } catch (error) {
+      toast.error("Failed to create calendar. Please try again.");
+      console.error("Failed to create calendar: " + (error.message || "Unknown error"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -109,7 +128,7 @@ export default function EditUserDialog({ open, onClose, userData, onSave, onCrea
         </Grid>
       </DialogContent>
       <DialogActions sx={{ justifyContent: "space-between" }}>
-        <Grid item>
+        <Grid sx={{ display: "flex", gap: 1 }}>
           {userData?.role === "physician" &&
             !userData?.calendarID &&
             editMode && (
@@ -121,8 +140,29 @@ export default function EditUserDialog({ open, onClose, userData, onSave, onCrea
                 Create Calendar
               </Button>
             )}
+          {userData?.role === "physician" &&
+            userData?.calendarID &&
+            editMode && (
+              <Button
+                onClick={() => setColorPickerOpen(true)}
+                variant="outlined"
+                startIcon={
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      bgcolor: userData?.calendarColor,
+                      flexShrink: 0,
+                    }}
+                  />
+                }
+              >
+                Calendar Color
+              </Button>
+            )}
         </Grid>
-        <Grid item>
+        <Grid>
           {editMode ? (
             <>
               <Button onClick={() => setEditMode(false)}>Cancel</Button>
@@ -144,6 +184,12 @@ export default function EditUserDialog({ open, onClose, userData, onSave, onCrea
           )}
         </Grid>
       </DialogActions>
+      <CalendarColorPicker
+        open={colorPickerOpen}
+        onClose={() => setColorPickerOpen(false)}
+        user={userData}
+        onUpdated={onUpdated}
+      />
     </Dialog>
   );
 }

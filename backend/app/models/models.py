@@ -146,7 +146,6 @@ class TriageCaseUpdate(SQLModel):
 
 class TriageCaseReview(SQLModel):
     reviewReason: str
-    scheduledDate: Optional[datetime] = None
 
 class TriageCasePublic(TriageCaseBase, PatientBase):
     caseID: uuid.UUID

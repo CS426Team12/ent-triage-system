@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
         authService.setAccessToken(token);
         await fetchUser();
       } catch (err) {
-        console.log("Not logged in:", err);
+        console.error("Not logged in:", err);
       } finally {
         setLoading(false);
       }

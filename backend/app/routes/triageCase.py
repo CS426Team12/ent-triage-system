@@ -261,7 +261,6 @@ def update_case(
                 logger.warning(f"PATCH /triage-cases/{id} - patient not found")
                 raise HTTPException(status_code=404, detail="Patient not found")
             
-            # Log patient changes
             log_changes(
                 session=db,
                 old_record=patient,
@@ -276,7 +275,6 @@ def update_case(
             db.add(patient)
         
         if case_updates:
-            # Log case changes
             log_changes(
                 session=db,
                 old_record=case,
@@ -388,17 +386,13 @@ def review_case(
         if case.status == "reviewed":
             raise HTTPException(status_code=400, detail="Case is already reviewed")
         
-        # Build update dict for changelog
         review_updates = {
             'status': 'reviewed',
             'reviewReason': update.reviewReason,
             'reviewedBy': current_user.userID,
             'reviewTimestamp': datetime.now()
         }
-        if update.scheduledDate:
-            review_updates['scheduledDate'] = update.scheduledDate
         
-        # Log changes
         log_changes(
             session=db,
             old_record=case,
@@ -410,12 +404,10 @@ def review_case(
             exclude_fields=['reviewedBy'],
         )
         
-        case.status = "reviewed"
-        case.reviewReason = update.reviewReason
-        case.reviewedBy = current_user.userID
-        case.reviewTimestamp = datetime.now()
-        if update.scheduledDate:
-            case.scheduledDate = update.scheduledDate
+        case.status = review_updates["status"]
+        case.reviewReason = review_updates["reviewReason"]
+        case.reviewedBy = review_updates["reviewedBy"]
+        case.reviewTimestamp = review_updates["reviewTimestamp"]
 
         db.add(case)
         db.commit()

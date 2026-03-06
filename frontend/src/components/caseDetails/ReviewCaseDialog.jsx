@@ -29,7 +29,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import { toast } from "../../utils/toast";
 
-import { appointmentService } from "../../api/appointmentService";
+import { calendarManagementService } from "../../api/calendarService";
 import { userService } from "../../api/userService";
 
 const fmtTime = (t) => {
@@ -37,11 +37,20 @@ const fmtTime = (t) => {
   return `${h > 12 ? h - 12 : h === 0 ? 12 : h}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 };
 
-const addThirtyMins = (time) => {
+const addMinutes = (time, mins) => {
   const [h, m] = time.split(":").map(Number);
-  const total = h * 60 + m + 30;
+  const total = h * 60 + m + mins;
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 };
+
+const DURATIONS = [
+  { label: "15 min", value: 15 },
+  { label: "30 min", value: 30 },
+  { label: "45 min", value: 45 },
+  { label: "1 hr", value: 60 },
+  { label: "1.5 hr", value: 90 },
+  { label: "2 hr", value: 120 },
+];
 
 export default function ReviewCaseDialog({
   open,
@@ -63,8 +72,7 @@ export default function ReviewCaseDialog({
     const loadPhysicians = async () => {
       try {
         const results = await userService.getAllUsers();
-        const users = results.data;
-        setPhysicians(users.filter((u) => u.role === "physician"));
+        setPhysicians(results.data.filter((u) => u.role === "physician"));
       } catch {
         toast.error("Could not load physicians");
       }
@@ -77,7 +85,7 @@ export default function ReviewCaseDialog({
     setLoadingSlots(true);
     setSlots([]);
     try {
-      const data = await appointmentService.getAvailability(
+      const data = await calendarManagementService.getAvailability(
         physicianID,
         dayjs(date).format("YYYY-MM-DD"),
       );
@@ -89,6 +97,23 @@ export default function ReviewCaseDialog({
     }
   }, []);
 
+  const validationSchema = React.useMemo(
+    () =>
+      Yup.object({
+        reviewReason: Yup.string().required("Review reason is required"),
+        physicianID: scheduleAppt
+          ? Yup.string().required("Physician is required")
+          : Yup.string().notRequired(),
+        appointmentDate: scheduleAppt
+          ? Yup.mixed().required("Date is required").nullable()
+          : Yup.mixed().notRequired().nullable(),
+        appointmentTime: scheduleAppt
+          ? Yup.string().required("Please select a time slot")
+          : Yup.string().notRequired(),
+      }),
+    [scheduleAppt],
+  );
+
   const formik = useFormik({
     validateOnMount: true,
     enableReinitialize: true,
@@ -97,29 +122,12 @@ export default function ReviewCaseDialog({
       physicianID: "",
       appointmentDate: null,
       appointmentTime: "",
+      durationMins: 30,
     },
-    validationSchema: Yup.object({
-      reviewReason: Yup.string().required("Review reason is required"),
-      physicianID: Yup.string().when([], {
-        is: () => scheduleAppt,
-        then: (s) => s.required("Physician is required"),
-        otherwise: (s) => s.notRequired(),
-      }),
-      appointmentDate: Yup.mixed().when([], {
-        is: () => scheduleAppt,
-        then: (s) => s.required("Date is required").nullable(),
-        otherwise: (s) => s.notRequired().nullable(),
-      }),
-      appointmentTime: Yup.string().when([], {
-        is: () => scheduleAppt,
-        then: (s) => s.required("Please select a time slot"),
-        otherwise: (s) => s.notRequired(),
-      }),
-    }),
+    validationSchema,
     onSubmit: async (values) => {
       setSubmitting(true);
       try {
-        // if scheduling, create the appointment first
         if (
           scheduleAppt &&
           values.physicianID &&
@@ -127,29 +135,24 @@ export default function ReviewCaseDialog({
           values.appointmentTime
         ) {
           const dateStr = dayjs(values.appointmentDate).format("YYYY-MM-DD");
-          const endTime = addThirtyMins(values.appointmentTime);
+          const endTime = addMinutes(
+            values.appointmentTime,
+            values.durationMins,
+          );
           const scheduledAt = `${dateStr}T${values.appointmentTime}:00`;
           const scheduledEnd = `${dateStr}T${endTime}:00`;
-          
-          console.log(caseID, values.physicianID, scheduledAt, scheduledEnd);
-          await appointmentService.createAppointment({
-            caseID: caseID,
+
+          await calendarManagementService.createAppointment({
+            caseID,
             physicianID: values.physicianID,
             scheduledAt,
             scheduledEnd,
           });
         }
 
-        await onReview({
-          reviewReason: values.reviewReason,
-          ...(scheduleAppt &&
-            values.appointmentDate && {
-              scheduledDate: dayjs(values.appointmentDate).toDate(),
-            }),
-        });
-
+        await onReview({ reviewReason: values.reviewReason });
         handleClose();
-      } catch (err) {
+      } catch {
         toast.error("Failed to submit review, please try again.");
       } finally {
         setSubmitting(false);
@@ -157,12 +160,25 @@ export default function ReviewCaseDialog({
     },
   });
 
+  const blocksNeeded = Math.ceil(formik.values.durationMins / 30);
+
+  const availableSlots = React.useMemo(() => {
+    return slots.filter((slot, index) => {
+      if (!slot.available) return false;
+      for (let i = 1; i < blocksNeeded; i++) {
+        if (!slots[index + i]?.available) return false;
+      }
+      return true;
+    });
+  }, [slots, blocksNeeded]);
+
   const handleToggleSchedule = (e) => {
     setScheduleAppt(e.target.checked);
     if (!e.target.checked) {
       formik.setFieldValue("physicianID", "");
       formik.setFieldValue("appointmentDate", null);
       formik.setFieldValue("appointmentTime", "");
+      formik.setFieldValue("durationMins", 30);
       setSlots([]);
     }
   };
@@ -178,6 +194,11 @@ export default function ReviewCaseDialog({
     formik.setFieldValue("appointmentDate", newValue);
     formik.setFieldValue("appointmentTime", "");
     loadSlots(formik.values.physicianID, newValue);
+  };
+
+  const handleDurationChange = (mins) => {
+    formik.setFieldValue("durationMins", mins);
+    formik.setFieldValue("appointmentTime", "");
   };
 
   const handleClose = () => {
@@ -241,11 +262,9 @@ export default function ReviewCaseDialog({
                   />
                 }
                 label={
-                  <Box>
-                    <Typography variant="body2" fontWeight={600}>
-                      Schedule an Appointment (Optional)
-                    </Typography>
-                  </Box>
+                  <Typography variant="body2" fontWeight={600}>
+                    Schedule an Appointment (Optional)
+                  </Typography>
                 }
               />
             </Box>
@@ -274,17 +293,38 @@ export default function ReviewCaseDialog({
                       label="Physician *"
                     >
                       {physicians.map((p) => (
-                        <MenuItem key={p.userID} value={p.userID}>
-                          <Box>
-                            <Typography variant="body2" fontWeight={600}>
-                              Dr. {p.firstName} {p.lastName}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              {p.role}
-                            </Typography>
+                        <MenuItem
+                          key={p.userID}
+                          value={p.userID}
+                          disabled={!p.calendarID}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              width: "100%",
+                            }}
+                          >
+                            <Box>
+                              <Typography variant="body2" fontWeight={600}>
+                                Dr. {p.firstName} {p.lastName}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {p.role}
+                              </Typography>
+                            </Box>
+                            {!p.calendarID && (
+                              <Typography
+                                variant="caption"
+                                sx={{ ml: 2, fontStyle: "italic" }}
+                              >
+                                Calendar has been not configured yet.
+                              </Typography>
+                            )}
                           </Box>
                         </MenuItem>
                       ))}
@@ -320,6 +360,36 @@ export default function ReviewCaseDialog({
                       },
                     }}
                   />
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Duration
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                      {DURATIONS.map((d) => (
+                        <Chip
+                          key={d.value}
+                          label={d.label}
+                          onClick={() => handleDurationChange(d.value)}
+                          color={
+                            formik.values.durationMins === d.value
+                              ? "primary"
+                              : "default"
+                          }
+                          variant={
+                            formik.values.durationMins === d.value
+                              ? "filled"
+                              : "outlined"
+                          }
+                          size="small"
+                          sx={{ fontWeight: 500, cursor: "pointer" }}
+                        />
+                      ))}
+                    </Stack>
+                  </Box>
                   {(loadingSlots || slots.length > 0) && (
                     <Box>
                       <Typography
@@ -329,7 +399,6 @@ export default function ReviewCaseDialog({
                       >
                         Available Times
                       </Typography>
-
                       {loadingSlots && (
                         <Box
                           sx={{
@@ -347,42 +416,44 @@ export default function ReviewCaseDialog({
                       )}
                       {!loadingSlots && slots.length > 0 && (
                         <>
-                          <Grid container spacing={1}>
-                            {slots.map((slot) => (
-                              <Grid item key={slot.time}>
-                                <Chip
-                                  label={fmtTime(slot.time)}
-                                  onClick={
-                                    slot.available
-                                      ? () =>
-                                          formik.setFieldValue(
-                                            "appointmentTime",
-                                            slot.time,
-                                          )
-                                      : undefined
-                                  }
-                                  color={
-                                    formik.values.appointmentTime === slot.time
-                                      ? "primary"
-                                      : "default"
-                                  }
-                                  variant={
-                                    formik.values.appointmentTime === slot.time
-                                      ? "filled"
-                                      : "outlined"
-                                  }
-                                  disabled={!slot.available}
-                                  size="small"
-                                  sx={{
-                                    cursor: slot.available
-                                      ? "pointer"
-                                      : "not-allowed",
-                                    fontWeight: 500,
-                                  }}
-                                />
-                              </Grid>
-                            ))}
-                          </Grid>
+                          {availableSlots.length === 0 ? (
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              No available times for this date and duration.
+                            </Typography>
+                          ) : (
+                            <Grid container spacing={1}>
+                              {availableSlots.map((slot) => (
+                                <Grid item key={slot.time}>
+                                  <Chip
+                                    label={fmtTime(slot.time)}
+                                    onClick={() =>
+                                      formik.setFieldValue(
+                                        "appointmentTime",
+                                        slot.time,
+                                      )
+                                    }
+                                    color={
+                                      formik.values.appointmentTime ===
+                                      slot.time
+                                        ? "primary"
+                                        : "default"
+                                    }
+                                    variant={
+                                      formik.values.appointmentTime ===
+                                      slot.time
+                                        ? "filled"
+                                        : "outlined"
+                                    }
+                                    size="small"
+                                    sx={{ cursor: "pointer", fontWeight: 500 }}
+                                  />
+                                </Grid>
+                              ))}
+                            </Grid>
+                          )}
                           {formik.touched.appointmentTime &&
                             formik.errors.appointmentTime && (
                               <Typography
@@ -400,18 +471,24 @@ export default function ReviewCaseDialog({
                   {selectedPhysician &&
                     formik.values.appointmentDate &&
                     formik.values.appointmentTime && (
-                        <Typography variant="body2">
-                          <strong>
-                            Dr. {selectedPhysician.firstName}{" "}
-                            {selectedPhysician.lastName}
-                          </strong>
-                          {" · "}
-                          {dayjs(formik.values.appointmentDate).format(
-                            "ddd, MMM D YYYY",
-                          )}
-                          {" at "}
-                          {fmtTime(formik.values.appointmentTime)}
-                        </Typography>
+                      <Typography variant="body2">
+                        <strong>
+                          Dr. {selectedPhysician.firstName}{" "}
+                          {selectedPhysician.lastName}
+                        </strong>
+                        {" · "}
+                        {dayjs(formik.values.appointmentDate).format(
+                          "ddd, MMM D YYYY",
+                        )}
+                        {" at "}
+                        {fmtTime(formik.values.appointmentTime)}
+                        {" · "}
+                        {
+                          DURATIONS.find(
+                            (d) => d.value === formik.values.durationMins,
+                          )?.label
+                        }
+                      </Typography>
                     )}
                 </Stack>
               </Paper>

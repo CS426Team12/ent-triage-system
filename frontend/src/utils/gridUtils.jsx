@@ -11,7 +11,6 @@ import { usePatients } from "../context/PatientContext";
 import { userService } from "../api/userService";
 import { toast } from "../utils/toast";
 import { UrgencyChangeIndicator } from "../components/UrgencyChangeIndicator";
-import { calendarManagementService } from "../api/calendarService";
 
 export const UrgencyCellRenderer = (params) => {
   if (!params.value) return null;
@@ -49,7 +48,6 @@ export const EditCaseButtonCellRenderer = (params) => {
 
   const handleSave = async (updatedData) => {
     if (Object.keys(updatedData).length === 0) return;
-    console.log(updatedData);
     const isReviewing = Boolean(updatedData.reviewReason);
 
     try {
@@ -135,7 +133,7 @@ export const EditUserButtonCellRenderer = (params) => {
 
   const handleSave = async (updatedData) => {
     if (Object.keys(updatedData).length === 0) return;
-    console.log("Saving with data: ", updatedData);
+    console.debug("Saving with data: ", updatedData);
     try {
       await userService.updateUser(userData.userID, updatedData);
       params.onUserUpdated?.(); //refresh user grid after update
@@ -143,18 +141,7 @@ export const EditUserButtonCellRenderer = (params) => {
       toast.success(`Successfully updated user.`);
     } catch (err) {
       toast.error(`Failed to update user.`);
-      console.log("Failed to update user: " + (err.message || "Unknown error"));
-    }
-  };
-
-  const handleCreateCalendar = async () => {
-    try {
-      await calendarManagementService.createPhysicianCalendar(userData?.userID);
-      params.onUserUpdated?.(); //refresh user grid after update
-      toast.success("Calendar created successfully.");
-    } catch (error) {
-      toast.error("Failed to create calendar. Please try again.");
-      console.error("Failed to create calendar: " + (error.message || "Unknown error"));
+      console.error("Failed to update user: " + (err.message || "Unknown error"));
     }
   };
 
@@ -168,7 +155,7 @@ export const EditUserButtonCellRenderer = (params) => {
         onClose={handleClose}
         userData={userData}
         onSave={handleSave}
-        onCreateCalendar={handleCreateCalendar}
+        onUpdated={params.onUserUpdated}
       />
     </>
   );

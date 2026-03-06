@@ -38,11 +38,6 @@ export default function CalendarPage() {
       const users = results.data;
       const physicians = users.filter((u) => u.role === "physician");
       setPhysicians(physicians);
-      if (physicians.every((p) => !p.calendarID)) {
-        toast.warn(
-          "No physician calendars configured. Run the setup script to create them.",
-        );
-      }
     } catch {
       toast.error("Could not load physician calendars");
     } finally {
