@@ -83,6 +83,14 @@ def get_user(user_id: str, db: Session = Depends(get_db), current_user: User = D
 def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user), request: Request = None):
 	if not current_user.isAdmin:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
+	existing = db.exec(select(User).where(User.email == payload.email)).first()
+	if existing:
+		raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with this email already exists")
+
+	if payload.role.lower() == "admin" and not payload.isAdmin:
+		raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Users with role 'admin' must have admin permissions enabled")
+
 	# TODO: hash or generate password, send invitation email
 	new_user = User(
 		firstName=payload.firstName,
@@ -92,9 +100,6 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user
 		isAdmin=payload.isAdmin,
 		passwordHash="",
 	)
-	existing = db.exec(select(User).where(User.email == payload.email)).first()
-	if existing:
-		raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with this email already exists")
 	db.add(new_user)
 	db.commit()
 	db.refresh(new_user)
@@ -127,6 +132,9 @@ def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db)
 	user = db.get(User, user_id)
 	if not user:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+	if payload.role.lower() == "admin" and not payload.isAdmin:
+		raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Users with role 'admin' must have admin permissions enabled")
 	
 	modified_fields = []
 	if payload.firstName is not None:

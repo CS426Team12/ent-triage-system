@@ -43,7 +43,11 @@ export default function EditUserDialog({
         .email("Invalid email address")
         .required("Email is required"),
       role: Yup.string().required("Role is required"),
-      isAdmin: Yup.boolean(),
+      isAdmin: Yup.boolean().when("role", {
+        is: "admin",
+        then: (schema) => schema.oneOf([true], "Admin role requires admin permissions to be enabled"),
+        otherwise: (schema) => schema,
+      }),
     }),
     onSubmit: async (values) => {
       const changedValues = getChangedFields(formik.initialValues, values);
