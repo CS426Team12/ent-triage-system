@@ -10,7 +10,7 @@ export default function ProtectedRoute({
 
   if (!user) return <Navigate to="/login" />;
   if (requireRoles && !requireRoles.includes(user.role)) {
-    if (user.isAdmin) {
+    if (user?.role === "admin") {
       return <Navigate to="/admin" />;
     }
     return <Navigate to="/dashboard" />;
