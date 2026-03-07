@@ -30,6 +30,8 @@ class UserPublic(SQLModel):
     role: str
     lastLogin: Optional[datetime] = None
     isAdmin: bool = False
+    calendarID: Optional[str] = None
+    calendarColor: Optional[str] = None
 
 class UsersList(SQLModel):
     data: list[UserPublic]
@@ -47,6 +49,8 @@ class User(SQLModel, table=True):
     lastName: str
     email: str = Field(unique=True)
     isAdmin: bool = False
+    calendarID: Optional[str] = None
+    calendarColor: Optional[str] = None
 
 class Message(SQLModel):
     message: str
@@ -107,6 +111,7 @@ class TriageCaseBase(SQLModel):
     overrideSummary: Optional[str] = None
     overrideUrgency: Optional[str] = None
     flags: Optional[Any] = Field(sa_type=JSONB)
+    activeAppointmentID: Optional[uuid.UUID] = None
 
 class TriageCase(TriageCaseBase, table=True):
     __tablename__ = "TriageCase"
@@ -149,7 +154,6 @@ class TriageCaseUpdate(SQLModel):
 
 class TriageCaseReview(SQLModel):
     reviewReason: str
-    scheduledDate: Optional[datetime] = None
 
 class TriageCasePublic(TriageCaseBase, PatientBase):
     caseID: uuid.UUID

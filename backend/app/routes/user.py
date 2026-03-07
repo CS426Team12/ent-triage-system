@@ -25,8 +25,6 @@ def list_users(
 	current_user: User = Depends(get_current_user),
 	request: Request = None
 ):
-	if not current_user.isAdmin:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 
 	statement = select(User).offset(offset).limit(limit)
 	results = db.exec(statement).all()

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
@@ -12,18 +12,29 @@ import {
   Divider,
   Switch,
   FormControlLabel,
+  Box
 } from "@mui/material";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
 import { USER_ROLE_OPTIONS } from "../../utils/consts";
 import { getChangedFields } from "../../utils/utils";
 import { useAuth } from "../../context/AuthContext";
+import { CalendarColorPicker } from "../CalendarColorPicker";
+import { toast } from "../../utils/toast";
+import { calendarManagementService } from "../../api/calendarService";
 
-export default function EditUserDialog({ open, onClose, userData, onSave }) {
+export default function EditUserDialog({
+  open,
+  onClose,
+  userData,
+  onSave,
+  onUpdated,
+}) {
   const [editMode, setEditMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
   const isCurrentUser = user?.userID === userData?.userID;
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -72,13 +83,27 @@ export default function EditUserDialog({ open, onClose, userData, onSave }) {
     onClose();
   };
 
+  const handleCreateCalendar = async () => {
+    try {
+      setSubmitting(true);
+      await calendarManagementService.createPhysicianCalendar(userData?.userID);
+      onUpdated(); //refresh user grid after update
+      toast.success("Calendar created successfully.");
+    } catch (error) {
+      toast.error("Failed to create calendar. Please try again.");
+      console.error("Failed to create calendar: " + (error.message || "Unknown error"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ fontWeight: 600 }}>Edit User Details</DialogTitle>
       <Divider />
       <DialogContent>
         <Grid container spacing={2}>
-          <Grid size={6}>
+          <Grid item size={6}>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               First Name
             </Typography>
@@ -88,7 +113,7 @@ export default function EditUserDialog({ open, onClose, userData, onSave }) {
               fieldName="firstName"
             />
           </Grid>
-          <Grid size={6}>
+          <Grid item size={6}>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               Last Name
             </Typography>
@@ -98,7 +123,7 @@ export default function EditUserDialog({ open, onClose, userData, onSave }) {
               fieldName="lastName"
             />
           </Grid>
-          <Grid size={12}>
+          <Grid item size={12}>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               Email
             </Typography>
@@ -109,7 +134,7 @@ export default function EditUserDialog({ open, onClose, userData, onSave }) {
               type="email"
             />
           </Grid>
-          <Grid size={12}>
+          <Grid item size={12}>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               Role
             </Typography>
@@ -144,26 +169,69 @@ export default function EditUserDialog({ open, onClose, userData, onSave }) {
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        {editMode ? (
-          <>
-            <Button onClick={() => setEditMode(false)}>Cancel</Button>
-            <Button
-              disabled={submitting}
-              onClick={formik.handleSubmit}
-              variant="contained">
-              Save
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button onClick={() => setEditMode(true)} variant="contained">
-              Edit
-            </Button>
-            <Button onClick={handleClose}>Close</Button>
-          </>
-        )}
+      <DialogActions sx={{ justifyContent: "space-between" }}>
+        <Grid sx={{ display: "flex", gap: 1 }}>
+          {userData?.role === "physician" &&
+            !userData?.calendarID &&
+            editMode && (
+              <Button
+                disabled={submitting}
+                onClick={handleCreateCalendar}
+                variant="contained"
+              >
+                Create Calendar
+              </Button>
+            )}
+          {userData?.role === "physician" &&
+            userData?.calendarID &&
+            editMode && (
+              <Button
+                onClick={() => setColorPickerOpen(true)}
+                variant="outlined"
+                startIcon={
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      bgcolor: userData?.calendarColor,
+                      flexShrink: 0,
+                    }}
+                  />
+                }
+              >
+                Calendar Color
+              </Button>
+            )}
+        </Grid>
+        <Grid>
+          {editMode ? (
+            <>
+              <Button onClick={() => setEditMode(false)}>Cancel</Button>
+              <Button
+                disabled={submitting}
+                onClick={formik.handleSubmit}
+                variant="contained"
+              >
+                Save
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={() => setEditMode(true)} variant="contained">
+                Edit
+              </Button>
+              <Button onClick={handleClose}>Close</Button>
+            </>
+          )}
+        </Grid>
       </DialogActions>
+      <CalendarColorPicker
+        open={colorPickerOpen}
+        onClose={() => setColorPickerOpen(false)}
+        user={userData}
+        onUpdated={onUpdated}
+      />
     </Dialog>
   );
 }

@@ -1,4 +1,4 @@
-import { SupervisorAccount, Assessment } from '@mui/icons-material';
+import { SupervisorAccount, Assessment, CalendarMonth } from '@mui/icons-material';
 
 export const FIELD_LABELS = {
   firstName: 'First Name',
@@ -58,6 +58,7 @@ export const RETURNING_PATIENT_OPTIONS = [
 export const NAV_PAGES = [
   { label: "Dashboard", path: "/dashboard", roles: ["physician", "staff"], icon: Assessment },
   { label: "Admin Portal", path: "/admin", roles: ["admin"], icon: SupervisorAccount, hasAdminPermission: true },
+  { label: "Calendar", path: "/calendar", roles: ["physician", "staff"], icon: CalendarMonth },
 ];
 
 export const USER_ROLE_OPTIONS = [
@@ -89,3 +90,12 @@ export const roleLabel = (role) => {
   const key = String(role).toLowerCase();
   return ROLE_LABEL_MAP[key];
 };
+
+export const DURATIONS = [
+  { label: "15 min", value: 15  },
+  { label: "30 min", value: 30  },
+  { label: "45 min", value: 45  },
+  { label: "1 hr",   value: 60  },
+  { label: "1.5 hr", value: 90  },
+  { label: "2 hr",   value: 120 },
+];

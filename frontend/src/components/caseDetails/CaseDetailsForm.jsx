@@ -28,7 +28,7 @@ export const CaseDetailsForm = ({
     { tag: "SEVERITY", keyword: "mild" },
     { tag: "RED_FLAG", keyword: "fever" },
   ];
-  console.log(caseData);
+
   return (
     <Grid container spacing={4}>
       <Grid>
@@ -83,22 +83,26 @@ export const CaseDetailsForm = ({
         <Box>
           <Box mb={2}>
             <Box display="flex" flexDirection="row" alignItems="center">
-              <UrgencyChangeIndicator
-                prevUrgency={caseData.previousUrgency || caseData.AIUrgency}
-                currentUrgency={caseData.overrideUrgency || caseData.AIUrgency}
+              <RenderSelectField
+                editMode={editMode}
+                formik={formik}
+                fieldName="overrideUrgency"
+                label="Case Urgency"
+                options={Object.values(URGENCY_VALUES).map((v) => ({
+                  value: v,
+                  label: URGENCY_LABELS[v],
+                }))}
+                renderChip
               />
+              <Box marginTop={3}>
+                <UrgencyChangeIndicator
+                  prevUrgency={caseData.previousUrgency || caseData.AIUrgency}
+                  currentUrgency={
+                    caseData.overrideUrgency || caseData.AIUrgency
+                  }
+                />
+              </Box>
             </Box>
-            <RenderSelectField
-              editMode={editMode}
-              formik={formik}
-              fieldName="overrideUrgency"
-              label="Case Urgency"
-              options={Object.values(URGENCY_VALUES).map((v) => ({
-                value: v,
-                label: URGENCY_LABELS[v],
-              }))}
-              renderChip
-            />
           </Box>
           <Box mb={2}>
             <Typography variant="subtitle2" color="textSecondary">

@@ -15,6 +15,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ToastContainer } from "react-toastify";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Calendar } from "./pages/Calendar.jsx";
 
 function App() {
   return (
@@ -51,6 +52,14 @@ function App() {
                 element={
                   <ProtectedRoute requireAdmin={true}>
                     <AdminPortal />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/calendar"
+                element={
+                  <ProtectedRoute requireRoles={["physician", "staff"]}>
+                    <Calendar />
                   </ProtectedRoute>
                 }
               />

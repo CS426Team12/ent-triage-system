@@ -1,7 +1,7 @@
 import uuid
 import logging
 from typing import Any
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Request, status
 from sqlmodel import Session, select
 from app.core.dependencies import get_db
 from app.auth.dependencies import get_current_user
@@ -31,14 +31,14 @@ def get_patient(
         patient = db.get(Patient, patient_id)
         if not patient:
             logger.warning(f"GET /patients/{patient_id} - patient not found")
-            raise HTTPException(status_code=404, detail="Patient not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
         
         return patient
     except HTTPException:
         raise
     except Exception as e:
         logger.exception(f"GET /patients/{patient_id} - Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve patient")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve patient")
 
 @router.patch("/{patient_id}", response_model=PatientPublic)
 def update_patient(
@@ -54,12 +54,12 @@ def update_patient(
         patient = db.get(Patient, patient_id)
         if not patient:
             logger.warning(f"PATCH /patients/{patient_id} - patient not found")
-            raise HTTPException(status_code=404, detail="Patient not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
         
         update_data = update.model_dump(exclude_unset=True)
         
         if not update_data:
-            raise HTTPException(status_code=400, detail="No fields to update")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
         
         log_changes(
             session=db,
@@ -98,7 +98,7 @@ def update_patient(
     except Exception as e:
         db.rollback()
         logger.exception(f"PATCH /patients/{patient_id} - Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to update patient")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update patient")
 
 @router.get("/{patient_id}/changelog")
 def get_patient_changelog(
@@ -111,7 +111,7 @@ def get_patient_changelog(
     try:
         patient = db.get(Patient, patient_id)
         if not patient:
-            raise HTTPException(status_code=404, detail="Patient not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
         
         statement = (
             select(
@@ -140,4 +140,4 @@ def get_patient_changelog(
         raise
     except Exception as e:
         logger.exception(f"GET /patients/{patient_id}/changelog - Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve patient changelog")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve patient changelog")

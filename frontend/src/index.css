@@ -5,3 +5,19 @@
 body {
   margin: 0;
 }
+
+.fc .fc-prev-button,
+.fc .fc-next-button {
+  background-color: #673ab7 !important;
+  border-color: #673ab7 !important;
+}
+
+.fc .fc-today-button {
+  background-color: #673ab7 !important;
+  border-color: #673ab7 !important;
+}
+
+.fc .fc-daygrid-day.fc-day-today,
+.fc .fc-timegrid-col.fc-day-today {
+  background-color: #61616120 !important;
+}
