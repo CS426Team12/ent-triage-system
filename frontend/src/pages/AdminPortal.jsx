@@ -21,7 +21,7 @@ export default function AdminPortal() {
     try {
       setLoading(true);
       const results = await userService.getAllUsers();
-      setUsers(results.data);
+      setUsers(results.data || []);
     } catch (err) {
       toast.error("Failed to load users, please refresh.");
       console.error("Error fetching users:", err);
