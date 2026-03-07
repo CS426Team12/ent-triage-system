@@ -15,7 +15,7 @@ import { APP_COLORS } from "../../theme";
 import { AI_REASONING_FLAG_LABELS } from "../../utils/consts";
 
 export default function AIReasoningField({ flags }) {
-  if (flags) {
+  if (flags && Object.keys(flags).length > 0) {
     const groupFlags = Object.groupBy(flags, ({ tag }) => tag); //group flag by tag
     const orderedTags = Object.keys(AI_REASONING_FLAG_LABELS); //maintain consistent tag order
 
