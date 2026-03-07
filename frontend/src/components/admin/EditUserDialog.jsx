@@ -9,12 +9,15 @@ import {
   Button,
   Grid,
   Typography,
-  Divider
+  Divider,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
 import { USER_ROLE_OPTIONS } from "../../utils/consts";
 import { getChangedFields } from "../../utils/utils"
+import { useAuth } from "../../context/AuthContext";
 
 export default function EditUserDialog({
   open,
@@ -24,6 +27,8 @@ export default function EditUserDialog({
 }) {
   const [editMode, setEditMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { user } = useAuth();
+  const isCurrentUser = user?.userID === userData?.userID;
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -32,6 +37,7 @@ export default function EditUserDialog({
       lastName: userData?.lastName || "",
       email: userData?.email || "",
       role: userData?.role || "",
+      isAdmin: userData?.isAdmin || false,
     },
     validationSchema: Yup.object({
       firstName: Yup.string().required("First name is required"),
@@ -40,6 +46,11 @@ export default function EditUserDialog({
         .email("Invalid email address")
         .required("Email is required"),
       role: Yup.string().required("Role is required"),
+      isAdmin: Yup.boolean().when("role", {
+        is: "admin",
+        then: (schema) => schema.oneOf([true], "Admin role requires admin permissions to be enabled"),
+        otherwise: (schema) => schema,
+      }),
     }),
     onSubmit: async (values) => {
       const changedValues = getChangedFields(formik.initialValues, values);
@@ -50,6 +61,13 @@ export default function EditUserDialog({
     },
   });
 
+  const handleRoleChange = (e) => {
+    formik.setFieldValue("role", e.target.value);
+    if (e.target.value === "admin") {
+      formik.setFieldValue("isAdmin", true);
+    }
+  };
+
   const handleClose = () => {
     setEditMode(false);
     onClose();
@@ -57,11 +75,9 @@ export default function EditUserDialog({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          <Typography sx={{ fontWeight: 600 }}>
-            Edit User Details
-          </Typography>
-        </DialogTitle>
+      <DialogTitle>
+        <Typography sx={{ fontWeight: 600 }}>Edit User Details</Typography>
+      </DialogTitle>
       <Divider />
       <DialogContent>
         <Grid container spacing={2}>
@@ -105,6 +121,23 @@ export default function EditUserDialog({
               formik={formik}
               fieldName="role"
               options={USER_ROLE_OPTIONS}
+              overrides={{ onChange: handleRoleChange, disabled: isCurrentUser }}
+            />
+          </Grid>
+          <Grid size={12}>
+            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+              Admin Permissions
+            </Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formik.values.isAdmin}
+                  onChange={(e) =>
+                    formik.setFieldValue("isAdmin", e.target.checked)
+                  }
+                  disabled={!editMode || formik.values.role === "admin" || isCurrentUser}
+                />
+              }
             />
           </Grid>
         </Grid>
@@ -113,7 +146,11 @@ export default function EditUserDialog({
         {editMode ? (
           <>
             <Button onClick={() => setEditMode(false)}>Cancel</Button>
-            <Button disabled={submitting} onClick={formik.handleSubmit} variant="contained">
+            <Button
+              disabled={submitting}
+              onClick={formik.handleSubmit}
+              variant="contained"
+            >
               Save
             </Button>
           </>

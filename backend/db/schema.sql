@@ -21,7 +21,8 @@ CREATE TABLE "User" (
     "email"        TEXT UNIQUE,
     "role"         TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
-    "lastLogin"    TIMESTAMPTZ
+    "lastLogin"    TIMESTAMPTZ,
+    "isAdmin"      BOOLEAN DEFAULT FALSE,
 );
 
 -- ============================================================

@@ -139,7 +139,8 @@ def get_current_user_info(user: User = Depends(get_current_user)):
         "role": user.role,
         "firstName": user.firstName,
         "lastName": user.lastName,
-        "first_initial": user.firstName[0].upper() if user.firstName else ""
+        "first_initial": user.firstName[0].upper() if user.firstName else "",
+        "isAdmin": user.isAdmin
     }
 
 

@@ -25,7 +25,7 @@ def list_users(
 	current_user: User = Depends(get_current_user),
 	request: Request = None
 ):
-	if current_user.role.lower() != "admin":
+	if not current_user.isAdmin:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 
 	statement = select(User).offset(offset).limit(limit)
@@ -53,7 +53,7 @@ def list_users(
 
 @router.get("/{user_id}", response_model=UserPublic)
 def get_user(user_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user), request: Request = None):
-	if current_user.role.lower() != "admin":
+	if not current_user.isAdmin:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 
 	user = db.get(User, user_id)
@@ -81,19 +81,25 @@ def get_user(user_id: str, db: Session = Depends(get_db), current_user: User = D
 
 @router.post("/", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
 def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user), request: Request = None):
-	if current_user.role.lower() != "admin":
+	if not current_user.isAdmin:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
+	existing = db.exec(select(User).where(User.email == payload.email)).first()
+	if existing:
+		raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with this email already exists")
+
+	if payload.role.lower() == "admin" and not payload.isAdmin:
+		raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Users with role 'admin' must have admin permissions enabled")
+
 	# TODO: hash or generate password, send invitation email
 	new_user = User(
 		firstName=payload.firstName,
 		lastName=payload.lastName,
 		email=payload.email,
 		role=payload.role.lower(),
+		isAdmin=payload.isAdmin,
 		passwordHash="",
 	)
-	existing = db.exec(select(User).where(User.email == payload.email)).first()
-	if existing:
-		raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with this email already exists")
 	db.add(new_user)
 	db.commit()
 	db.refresh(new_user)
@@ -118,14 +124,17 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user
 	return new_user
 
 
-@router.put("/{user_id}", response_model=UserPublic)
+@router.patch("/{user_id}", response_model=UserPublic)
 def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user), request: Request = None):
-	if current_user.role.lower() != "admin":
+	if not current_user.isAdmin:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 
 	user = db.get(User, user_id)
 	if not user:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+	if payload.role and payload.role.lower() == "admin" and not payload.isAdmin:
+		raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Users with role 'admin' must have admin permissions enabled")
 	
 	modified_fields = []
 	if payload.firstName is not None:
@@ -140,6 +149,9 @@ def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db)
 	if payload.role is not None:
 		user.role = payload.role.lower()
 		modified_fields.append("role")
+	if payload.isAdmin is not None:
+		user.isAdmin = payload.isAdmin
+		modified_fields.append("isAdmin")
 
 	db.add(user)
 	db.commit()
@@ -168,7 +180,7 @@ def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db)
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user), request: Request = None):
-	if current_user.role.lower() != "admin":
+	if not current_user.isAdmin:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 
 	user = db.get(User, user_id)

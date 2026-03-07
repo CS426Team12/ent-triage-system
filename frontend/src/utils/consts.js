@@ -56,8 +56,8 @@ export const RETURNING_PATIENT_OPTIONS = [
 ];
 
 export const NAV_PAGES = [
-  { label: "Dashboard", path: "/dashboard", icon: Assessment },
-  { label: "Admin Portal", path: "/admin", role: "admin", icon: SupervisorAccount },
+  { label: "Dashboard", path: "/dashboard", roles: ["physician", "staff"], icon: Assessment },
+  { label: "Admin Portal", path: "/admin", roles: ["admin"], icon: SupervisorAccount, hasAdminPermission: true },
 ];
 
 export const USER_ROLE_OPTIONS = [
