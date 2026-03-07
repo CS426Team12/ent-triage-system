@@ -3,7 +3,7 @@ import { Chip, IconButton, Box } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { URGENCY_PRIORITY, URGENCY_LABELS } from "../utils/consts";
-import { URGENCY_COLORS } from "../theme";
+import theme, { URGENCY_COLORS } from "../theme";
 import { CaseDetailsDialog } from "../components/caseDetails/CaseDetailsDialog";
 import EditUserDialog from "../components/admin/EditUserDialog";
 import { userService } from "../api/userService";
@@ -24,7 +24,7 @@ export const UrgencyCellRenderer = (params) => {
       size="medium"
       sx={{
         backgroundColor: color,
-        color: "white",
+        color: theme.palette.getContrastText(color),
         fontWeight: "bold",
         fontSize: "0.75rem",
       }}
@@ -107,7 +107,7 @@ export const EditCaseButtonCellRenderer = (params) => {
 
   return (
     <>
-      <IconButton onClick={handleOpen} size="medium">
+      <IconButton onClick={handleOpen} size="medium" aria-label="Edit case">
         <Edit />
       </IconButton>
       <CaseDetailsDialog
@@ -144,16 +144,14 @@ export const EditUserButtonCellRenderer = (params) => {
       toast.success(`Successfully updated user.`);
     } catch (err) {
       toast.error(`Failed to update user.`);
-      console.log(
-        "Failed to update user: " + (err.message || "Unknown error")
-      );
+      console.log("Failed to update user: " + (err.message || "Unknown error"));
     }
     setSaving(false);
   };
 
   return (
     <>
-      <IconButton onClick={handleOpen} size="medium">
+      <IconButton onClick={handleOpen} size="medium" aria-label="Edit User">
         <Edit />
       </IconButton>
       <EditUserDialog
@@ -171,12 +169,7 @@ export const UrgencyChangeCellRenderer = (params) => {
   const current = overrideUrgency || AIUrgency;
   const prev = previousUrgency || AIUrgency;
 
-  return (
-    <UrgencyChangeIndicator
-      prevUrgency={prev}
-      currentUrgency={current}
-    />
-  );
+  return <UrgencyChangeIndicator prevUrgency={prev} currentUrgency={current} />;
 };
 
 export const ageValueGetter = (dob) => {

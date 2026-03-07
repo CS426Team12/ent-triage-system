@@ -89,6 +89,7 @@ export default function Login() {
             {/* Password */}
             <FormControl variant="outlined" fullWidth sx={{ mt: 2 }}>
               <InputLabel
+                id="password-label"
                 error={
                   formik.touched.password && Boolean(formik.errors.password)
                 }>
@@ -96,6 +97,7 @@ export default function Login() {
               </InputLabel>
 
               <OutlinedInput
+                id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
                 value={formik.values.password}
@@ -104,14 +106,20 @@ export default function Login() {
                 error={
                   formik.touched.password && Boolean(formik.errors.password)
                 }
+                label="Password"
+                labelId="password-label"
                 endAdornment={
                   <InputAdornment position="end">
-                    <IconButton onClick={handleClickShowPassword} edge="end">
+                    <IconButton
+                      onClick={handleClickShowPassword}
+                      edge="end"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }>
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 }
-                label="Password"
               />
 
               {formik.touched.password && formik.errors.password && (

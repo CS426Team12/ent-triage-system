@@ -16,15 +16,10 @@ import {
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
 import { USER_ROLE_OPTIONS } from "../../utils/consts";
-import { getChangedFields } from "../../utils/utils"
+import { getChangedFields } from "../../utils/utils";
 import { useAuth } from "../../context/AuthContext";
 
-export default function EditUserDialog({
-  open,
-  onClose,
-  userData,
-  onSave,
-}) {
+export default function EditUserDialog({ open, onClose, userData, onSave }) {
   const [editMode, setEditMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
@@ -48,7 +43,11 @@ export default function EditUserDialog({
       role: Yup.string().required("Role is required"),
       isAdmin: Yup.boolean().when("role", {
         is: "admin",
-        then: (schema) => schema.oneOf([true], "Admin role requires admin permissions to be enabled"),
+        then: (schema) =>
+          schema.oneOf(
+            [true],
+            "Admin role requires admin permissions to be enabled",
+          ),
         otherwise: (schema) => schema,
       }),
     }),
@@ -75,9 +74,7 @@ export default function EditUserDialog({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        <Typography sx={{ fontWeight: 600 }}>Edit User Details</Typography>
-      </DialogTitle>
+      <DialogTitle sx={{ fontWeight: 600 }}>Edit User Details</DialogTitle>
       <Divider />
       <DialogContent>
         <Grid container spacing={2}>
@@ -121,7 +118,10 @@ export default function EditUserDialog({
               formik={formik}
               fieldName="role"
               options={USER_ROLE_OPTIONS}
-              overrides={{ onChange: handleRoleChange, disabled: isCurrentUser }}
+              overrides={{
+                onChange: handleRoleChange,
+                disabled: isCurrentUser,
+              }}
             />
           </Grid>
           <Grid size={12}>
@@ -135,7 +135,9 @@ export default function EditUserDialog({
                   onChange={(e) =>
                     formik.setFieldValue("isAdmin", e.target.checked)
                   }
-                  disabled={!editMode || formik.values.role === "admin" || isCurrentUser}
+                  disabled={
+                    !editMode || formik.values.role === "admin" || isCurrentUser
+                  }
                 />
               }
             />
@@ -149,8 +151,7 @@ export default function EditUserDialog({
             <Button
               disabled={submitting}
               onClick={formik.handleSubmit}
-              variant="contained"
-            >
+              variant="contained">
               Save
             </Button>
           </>

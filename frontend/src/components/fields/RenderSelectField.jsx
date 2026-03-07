@@ -7,7 +7,7 @@ import {
   MenuItem,
   Chip,
 } from "@mui/material";
-import { URGENCY_COLORS } from "../../theme";
+import theme, { URGENCY_COLORS } from "../../theme";
 
 export default function RenderSelectField({
   editMode,
@@ -22,7 +22,7 @@ export default function RenderSelectField({
   if (!editMode) {
     return (
       <Box>
-        <Typography variant="subtitle2" color="textSecondary">
+        <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 0.5 }}>
           {label}
         </Typography>
         {renderChip ? (
@@ -34,7 +34,10 @@ export default function RenderSelectField({
             }
             sx={{
               backgroundColor: URGENCY_COLORS[formik.values[fieldName]],
-              color: "#fff",
+              color: theme.palette.getContrastText(
+                URGENCY_COLORS[formik.values[fieldName]],
+              ),
+              fontWeight: 500,
             }}
           />
         ) : (
@@ -49,8 +52,10 @@ export default function RenderSelectField({
 
   return (
     <FormControl fullWidth>
-      <InputLabel>{label}</InputLabel>
+      <InputLabel id={`${fieldName}-label`}>{label}</InputLabel>
       <Select
+        labelId={`${fieldName}-label`}
+        id={`${fieldName}-select`}
         name={fieldName}
         value={formik.values[fieldName]}
         onChange={formik.handleChange}
@@ -60,7 +65,11 @@ export default function RenderSelectField({
           renderChip ? (
             <Chip
               label={options.find((o) => o.value === selected)?.label || "---"}
-              sx={{ backgroundColor: URGENCY_COLORS[selected], color: "#fff" }}
+              sx={{
+                backgroundColor: URGENCY_COLORS[selected],
+                color: theme.palette.getContrastText(URGENCY_COLORS[selected]),
+                fontWeight: 500,
+              }}
             />
           ) : (
             options.find((o) => o.value === selected)?.label || selected
