@@ -4,11 +4,12 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayjs from "dayjs";
-import { DURATIONS } from "../../../utils/consts";
+import { DURATIONS } from "../../../utils/consts";  
+import { APP_COLORS } from "../../../theme";
 
-const SELECTED_COLOR = primary.main;
-const AVAILABLE_COLOR = secondary.main;
-const BUSY_COLOR = error.main;
+const SELECTED_COLOR = APP_COLORS.purple[600];
+const AVAILABLE_COLOR = APP_COLORS.status.success;
+const BUSY_COLOR = APP_COLORS.status.error;
 
 export const addMinutes = (time, mins) => {
   const [h, m] = time.split(":").map(Number);
@@ -55,7 +56,7 @@ export const AvailabilityCalendar = ({
         title: "Selected",
         backgroundColor: SELECTED_COLOR,
         borderColor: SELECTED_COLOR,
-        textColor: "primary.contrastText",
+        textColor: APP_COLORS.text.contrastText,
       },
     ];
   }, [appointmentTime, appointmentDate, durationMins]);
@@ -129,7 +130,7 @@ export const AvailabilityCalendar = ({
               slotMaxTime="17:00:00"
               slotDuration="00:30:00"
               allDaySlot={false}
-              eventTextColor="primary.contrastText"
+              eventTextColor={APP_COLORS.text.contrastText}
             />
           </Box>
           {errors.appointmentTime && (

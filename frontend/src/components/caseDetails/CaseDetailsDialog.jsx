@@ -34,8 +34,6 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onSave }) => {
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
-  const { user } = useAuth();
-
   useEffect(() => {
     if (caseData) {
       setFormData(caseData);
@@ -98,6 +96,10 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onSave }) => {
   };
 
   const handleTabChange = (event, newValue) => {
+    if (activeTab !== 0 && editMode) {
+      setEditMode(false);
+      formik.resetForm();
+    }
     setActiveTab(newValue);
   };
 
@@ -117,7 +119,7 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onSave }) => {
         <Tab label="Details" sx={{ textTransform: "none" }} />
         <Tab label="History" sx={{ textTransform: "none" }} />
         <Tab
-          label={isUnreviewed ? "Review" : "Schedule"}
+          label={isUnreviewed ? "Review" : "Appointment"}
           sx={{ textTransform: "none" }}
         />
       </Tabs>
@@ -143,12 +145,12 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onSave }) => {
             scheduledDate={formData.scheduledDate}
             activeAppointmentID={formData.activeAppointmentID}
             onSave={onSave}
-            onClose={handleClose}
+            handleClose={handleClose}
           />
         </TabPanel>
       </DialogContent>
       <DialogActions>
-        {editMode ? (
+        {activeTab === 0 && editMode ? (
           <>
             <Button
               disabled={submitting || !formik.isValid}

@@ -25,7 +25,7 @@ export const ScheduleTab = ({
   caseStatus,
   activeAppointmentID,
   onSave,
-  onClose,
+  handleClose,
 }) => {
   const [physicians, setPhysicians] = React.useState([]);
   const [appointment, setAppointment] = React.useState(null);
@@ -46,6 +46,7 @@ export const ScheduleTab = ({
 
   const isUnreviewed = caseStatus !== STATUS_VALUES.REVIEWED;
   const hasAppointment = !!appointment;
+  const isAppointmentInPast = hasAppointment && dayjs(appointment.scheduledAt).isBefore(dayjs());
 
   const fetchUsers = async () => {
     try {
@@ -72,11 +73,11 @@ export const ScheduleTab = ({
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchUsers();
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchAppointment();
   }, [activeAppointmentID]);
 
@@ -216,7 +217,7 @@ export const ScheduleTab = ({
       handleClose();
     } catch (err) {
       toast.error("Failed to submit review");
-      console.err("Error submitting review", err);
+      console.error("Error submitting review", err);
     } finally {
       setSubmitting(false);
     }
@@ -366,7 +367,7 @@ export const ScheduleTab = ({
               ? "Submit Review & Schedule"
               : "Submit Review"}
           </Button>
-          <Button onClick={onClose} disabled={submitting}>
+          <Button onClick={handleClose} disabled={submitting}>
             Cancel
           </Button>
         </Box>
@@ -386,7 +387,7 @@ export const ScheduleTab = ({
         ) : (
           <AppointmentInfo appointment={appointment} />
         )}
-        <Box display="flex" flexDirection="column" gap={1}>
+        {!isAppointmentInPast && <Box display="flex" flexDirection="column" gap={1}>
           <FormControlLabel
             control={
               <Switch
@@ -410,7 +411,7 @@ export const ScheduleTab = ({
             }
             label={<Typography variant="body2">Cancel appointment</Typography>}
           />
-        </Box>
+        </Box>}
         {showCancelForm && (
           <>
             <Divider />
@@ -473,7 +474,7 @@ export const ScheduleTab = ({
               Reschedule Appointment
             </Button>
           )}
-          <Button onClick={onClose} disabled={submitting}>
+          <Button onClick={handleClose} disabled={submitting}>
             Close
           </Button>
         </Box>
@@ -507,7 +508,7 @@ export const ScheduleTab = ({
         >
           Schedule Appointment
         </Button>
-        <Button onClick={onClose} disabled={submitting}>
+        <Button onClick={handleClose} disabled={submitting}>
           Close
         </Button>
       </Box>
