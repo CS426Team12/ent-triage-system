@@ -35,9 +35,9 @@ class AppointmentCreate(BaseModel):
   scheduledEnd: datetime
 
 class AppointmentReschedule(BaseModel):
-  scheduledAt: Optional[datetime] = None
-  scheduledEnd: Optional[datetime] = None
-  physicianID: Optional[uuid.UUID] = None
+  scheduledAt: datetime
+  scheduledEnd: datetime
+  physicianID: uuid.UUID
 
 class AppointmentCancel(BaseModel):
   cancelReason: str
