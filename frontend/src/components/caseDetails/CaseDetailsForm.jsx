@@ -83,12 +83,6 @@ export const CaseDetailsForm = ({
         <Box>
           <Box mb={2}>
             <Box display="flex" flexDirection="row" alignItems="center">
-              <Typography
-                variant="subtitle2"
-                color="textSecondary"
-                sx={{ fontWeight: 500 }}>
-                {FIELD_LABELS.overrideUrgency}
-              </Typography>
               <UrgencyChangeIndicator
                 prevUrgency={caseData.previousUrgency || caseData.AIUrgency}
                 currentUrgency={caseData.overrideUrgency || caseData.AIUrgency}
@@ -98,7 +92,7 @@ export const CaseDetailsForm = ({
               editMode={editMode}
               formik={formik}
               fieldName="overrideUrgency"
-              label=""
+              label="Case Urgency"
               options={Object.values(URGENCY_VALUES).map((v) => ({
                 value: v,
                 label: URGENCY_LABELS[v],
