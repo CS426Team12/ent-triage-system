@@ -22,7 +22,6 @@ import { toast } from "../utils/toast";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import "./calendar.css";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

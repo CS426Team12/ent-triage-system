@@ -90,3 +90,12 @@ export const roleLabel = (role) => {
   const key = String(role).toLowerCase();
   return ROLE_LABEL_MAP[key];
 };
+
+export const DURATIONS = [
+  { label: "15 min", value: 15  },
+  { label: "30 min", value: 30  },
+  { label: "45 min", value: 45  },
+  { label: "1 hr",   value: 60  },
+  { label: "1.5 hr", value: 90  },
+  { label: "2 hr",   value: 120 },
+];

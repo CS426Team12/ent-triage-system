@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { CaseDetailsForm } from "./CaseDetailsForm";
 import { CaseHistory } from "./CaseHistory";
-import { ScheduleTab } from "./ScheduleTab";
+import { ScheduleTab } from "./schedule/ScheduleTab";
 import { STATUS_VALUES } from "../../utils/consts";
 import { getChangedFields } from "../../utils/utils";
 
@@ -89,11 +89,6 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onSave }) => {
     },
   });
 
-  const handleOpenResolve = () => {
-    formik.setFieldValue("resolvedBy", user?.username || "");
-    setActiveTab(2);
-  };
-
   const handleClose = () => {
     if (editMode) {
       return;
@@ -148,10 +143,6 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onSave }) => {
             scheduledDate={formData.scheduledDate}
             activeAppointmentID={formData.activeAppointmentID}
             onSave={onSave}
-            onSuccess={() => {
-              setActiveTab(0);
-              onClose();
-            }}
             onClose={handleClose}
           />
         </TabPanel>
@@ -178,14 +169,9 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onSave }) => {
         ) : (
           <>
             {activeTab === 0 && (
-              <>
                 <Button onClick={() => setEditMode(true)} variant="contained">
                   Edit
                 </Button>
-                {isUnreviewed && (
-                  <Button onClick={handleOpenResolve}>Review</Button>
-                )}
-              </>
             )}
             {activeTab !== 2 && (
               <Button onClick={handleClose}>Close</Button>
