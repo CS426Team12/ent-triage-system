@@ -18,10 +18,16 @@ export default function Dashboard() {
   };
 
   const fetchCases = async () => {
-    setLoading(true);
-    const results = await triageCaseService.getAllCases();
-    setCases(results.cases);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const results = await triageCaseService.getAllCases();
+      setCases(results.cases);
+    } catch (err) {
+      toast.error("Failed to load cases, please refresh.");
+      console.error("Error fetching cases:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   React.useEffect(() => {
