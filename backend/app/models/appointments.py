@@ -22,7 +22,7 @@ class Appointment(SQLModel, table=True):
   gcalCalendarId: Optional[str] = None
 
   status: str = Field(default="scheduled")
-  cancelReason: Optional[str] = None
+  cancelReason: str
   cancelledAt: Optional[datetime] = None
 
   createdAt: datetime = Field(default_factory=datetime.now)
@@ -40,4 +40,4 @@ class AppointmentReschedule(BaseModel):
   physicianID: Optional[uuid.UUID] = None
 
 class AppointmentCancel(BaseModel):
-  cancelReason: Optional[str] = None
+  cancelReason: str

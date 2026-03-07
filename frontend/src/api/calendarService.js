@@ -61,7 +61,7 @@ class CalendarManagementService {
     return res.data;
   }
 
-  async cancelAppointment(appointmentID, cancelReason = null) {
+  async cancelAppointment(appointmentID, cancelReason) {
     const res = await apiClient.delete(`/calendar/${appointmentID}`, {
       data: { cancelReason },
     });

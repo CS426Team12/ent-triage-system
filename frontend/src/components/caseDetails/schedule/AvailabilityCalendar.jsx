@@ -27,6 +27,7 @@ export const AvailabilityCalendar = ({
   selectedPhysician,
   onTimeSelect,
   errors = {},
+  submitting,
 }) => {
   const calendarEvents = React.useMemo(() => {
     if (!appointmentDate || !slots.length) return [];
@@ -62,6 +63,7 @@ export const AvailabilityCalendar = ({
   }, [appointmentTime, appointmentDate, durationMins]);
 
   const handleDateClick = (info) => {
+    if (submitting) return;
     const clickedTime = dayjs(info.date).format("HH:mm");
     const startIndex = slots.findIndex((s) => s.time === clickedTime);
     if (startIndex === -1) return;

@@ -39,8 +39,6 @@ HEX_TO_COLOR_ID: dict[str, str] = {
     "#039be5": "7",  # Peacock
     "#616161": "8",  # Graphite
     "#3f51b5": "9",  # Blueberry
-    "#0b8043": "10",  # Basil
-    "#d50000": "11",  # Tomato
 }
 
 
@@ -657,7 +655,7 @@ def reschedule_appointment(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
         
         current_date = normalize_to_clinic_tz(datetime.now(timezone.utc))
-        if appointment.scheduledAt < current_date or appointment.status in ("cancelled", "rescheduled"):
+        if appointment.scheduledAt <  current_date or appointment.status in ("cancelled", "rescheduled"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot reschedule appointment"
             )

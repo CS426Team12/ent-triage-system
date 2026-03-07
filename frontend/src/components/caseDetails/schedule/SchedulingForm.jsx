@@ -12,6 +12,7 @@ export const SchedulingForm = ({
   onDateChange,
   onDurationChange,
   errors = {},
+  submitting,
 }) => (
   <Box display="flex" flexDirection="column" gap={2}>
     <PhysicianSelect
@@ -19,12 +20,14 @@ export const SchedulingForm = ({
       value={physicianID}
       onChange={onPhysicianChange}
       error={errors.physicianID}
+      disabled={submitting}
     />
     <DatePicker
       label="Appointment Date"
       value={appointmentDate}
       onChange={onDateChange}
       disablePast
+      disabled={submitting}
       slotProps={{
         textField: {
           fullWidth: true,
@@ -47,6 +50,7 @@ export const SchedulingForm = ({
             variant={durationMins === d.value ? "filled" : "outlined"}
             size="small"
             sx={{ fontWeight: 500, cursor: "pointer" }}
+            disabled={submitting}
           />
         ))}
       </Box>

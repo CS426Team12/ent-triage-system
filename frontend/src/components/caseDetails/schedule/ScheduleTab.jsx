@@ -46,7 +46,8 @@ export const ScheduleTab = ({
 
   const isUnreviewed = caseStatus !== STATUS_VALUES.REVIEWED;
   const hasAppointment = !!appointment;
-  const isAppointmentInPast = hasAppointment && dayjs(appointment.scheduledAt).isBefore(dayjs());
+  const isAppointmentInPast =
+    hasAppointment && dayjs(appointment.scheduledAt).isBefore(dayjs());
 
   const fetchUsers = async () => {
     try {
@@ -108,8 +109,18 @@ export const ScheduleTab = ({
           showRescheduleForm
             ? Yup.string().required("Please select a time slot")
             : Yup.string().notRequired(),
+
+        cancelReason: showCancelForm
+          ? Yup.string().trim().required("Cancel reason is required")
+          : Yup.string().notRequired(),
       }),
-    [isUnreviewed, hasAppointment, scheduleAppt, showRescheduleForm],
+    [
+      isUnreviewed,
+      hasAppointment,
+      scheduleAppt,
+      showRescheduleForm,
+      showCancelForm,
+    ],
   );
 
   const validate = React.useCallback(
@@ -196,6 +207,7 @@ export const ScheduleTab = ({
     physicianID,
     appointmentDate,
     appointmentTime,
+    cancelReason,
   };
 
   const handleSubmitReview = async () => {
@@ -213,7 +225,6 @@ export const ScheduleTab = ({
         });
       }
       await onSave({ reviewReason, caseID });
-      toast.success("Review submitted");
       handleClose();
     } catch (err) {
       toast.error("Failed to submit review");
@@ -268,11 +279,12 @@ export const ScheduleTab = ({
   };
 
   const handleSubmitCancel = async () => {
+    if (!(await validate(currentValues))) return;
     setSubmitting(true);
     try {
       await calendarManagementService.cancelAppointment(
         activeAppointmentID,
-        cancelReason || null,
+        cancelReason,
       );
       toast.success("Appointment cancelled");
       handleClose();
@@ -298,6 +310,7 @@ export const ScheduleTab = ({
     onDateChange: handleDateChange,
     onDurationChange: handleDurationChange,
     errors,
+    submitting,
   };
 
   const availabilityProps = {
@@ -310,6 +323,7 @@ export const ScheduleTab = ({
     selectedPhysician,
     onTimeSelect: setAppointmentTime,
     errors,
+    submitting,
   };
 
   // unreviewed
@@ -329,10 +343,15 @@ export const ScheduleTab = ({
           onChange={(e) => setReviewReason(e.target.value)}
           error={!!errors.reviewReason}
           helperText={errors.reviewReason}
+          disabled={submitting}
         />
         <FormControlLabel
           control={
-            <Switch checked={scheduleAppt} onChange={handleToggleSchedule} />
+            <Switch
+              checked={scheduleAppt}
+              onChange={handleToggleSchedule}
+              disabled={submitting}
+            />
           }
           label={
             <Typography variant="body2">Schedule an appointment</Typography>
@@ -387,31 +406,35 @@ export const ScheduleTab = ({
         ) : (
           <AppointmentInfo appointment={appointment} />
         )}
-        {!isAppointmentInPast && <Box display="flex" flexDirection="column" gap={1}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showRescheduleForm}
-                onChange={handleToggleReschedule}
-                disabled={showCancelForm}
-              />
-            }
-            label={<Typography variant="body2">Reschedule</Typography>}
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showCancelForm}
-                onChange={(e) => {
-                  setShowCancelForm(e.target.checked);
-                  setShowRescheduleForm(false);
-                }}
-                disabled={showRescheduleForm}
-              />
-            }
-            label={<Typography variant="body2">Cancel appointment</Typography>}
-          />
-        </Box>}
+        {!isAppointmentInPast && (
+          <Box display="flex" flexDirection="column" gap={1}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showRescheduleForm}
+                  onChange={handleToggleReschedule}
+                  disabled={showCancelForm}
+                />
+              }
+              label={<Typography variant="body2">Reschedule</Typography>}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showCancelForm}
+                  onChange={(e) => {
+                    setShowCancelForm(e.target.checked);
+                    setShowRescheduleForm(false);
+                  }}
+                  disabled={showRescheduleForm}
+                />
+              }
+              label={
+                <Typography variant="body2">Cancel appointment</Typography>
+              }
+            />
+          </Box>
+        )}
         {showCancelForm && (
           <>
             <Divider />
@@ -422,9 +445,12 @@ export const ScheduleTab = ({
               fullWidth
               multiline
               rows={4}
-              label="Cancel Reason (Optional)"
+              label="Cancellation Reason *"
               value={cancelReason}
+              disabled={submitting}
               onChange={(e) => setCancelReason(e.target.value)}
+              error={!!errors.cancelReason}
+              helperText={errors.cancelReason}
             />
           </>
         )}
@@ -456,7 +482,6 @@ export const ScheduleTab = ({
           {showCancelForm && (
             <Button
               variant="contained"
-              color="error"
               disabled={submitting}
               onClick={handleSubmitCancel}
               startIcon={submitIcon}

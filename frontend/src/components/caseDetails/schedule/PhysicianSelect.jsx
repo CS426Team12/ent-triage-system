@@ -13,6 +13,7 @@ export const PhysicianSelect = ({
   value,
   onChange,
   error,
+  disabled,
 }) => (
   <FormControl fullWidth error={!!error}>
     <InputLabel>Physician</InputLabel>
@@ -20,6 +21,7 @@ export const PhysicianSelect = ({
       value={value}
       onChange={onChange}
       label={"Physician"}
+      disabled={disabled}
     >
       {physicians.map((p) => (
         <MenuItem key={p.userID} value={p.userID} disabled={!p.calendarID}>
