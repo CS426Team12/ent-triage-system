@@ -28,7 +28,7 @@ export const CaseDetailsForm = ({
     { tag: "SEVERITY", keyword: "mild" },
     { tag: "RED_FLAG", keyword: "fever" },
   ];
-
+  console.log(caseData);
   return (
     <Grid container spacing={4}>
       <Grid>
@@ -114,7 +114,7 @@ export const CaseDetailsForm = ({
           </Typography>
           <Typography variant="body2">{caseData.AISummary || "---"}</Typography>
           {/* TODO: update to caseData.flags */}
-          <AIReasoningField flags={test_flags} />
+          <AIReasoningField flags={caseData.flags} />
         </Box>
         {editMode || formik.values.overrideSummary ? (
           <RenderTextField

@@ -1,7 +1,8 @@
 from sqlmodel import SQLModel, Field
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime, date, timezone
 import uuid
+from sqlalchemy.dialects.postgresql import JSONB
 
 # ============= USER MODELS =============
 class UserBase(SQLModel):
@@ -105,6 +106,7 @@ class TriageCaseBase(SQLModel):
     clinicianNotes: Optional[str] = None
     overrideSummary: Optional[str] = None
     overrideUrgency: Optional[str] = None
+    flags: Optional[Any] = Field(sa_type=JSONB)
 
 class TriageCase(TriageCaseBase, table=True):
     __tablename__ = "TriageCase"
@@ -125,6 +127,8 @@ class TriageCaseCreate(SQLModel):
     AIConfidence: Optional[float] = None
     AISummary: Optional[str] = None
     AIUrgency: Optional[str] = None
+    flags: Optional[Any] = Field(sa_type=JSONB)
+
 
 class TriageCaseUpdate(SQLModel):
     transcript: Optional[str] = None
