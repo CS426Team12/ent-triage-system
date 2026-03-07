@@ -16,6 +16,7 @@ export default function RenderSelectField({
   label,
   options,
   renderChip = false,
+  overrides = {},
 }) {
   // Two Types of select fields: with chips (urgencies) or normal text dropdown
   if (!editMode) {
@@ -64,7 +65,8 @@ export default function RenderSelectField({
           ) : (
             options.find((o) => o.value === selected)?.label || selected
           )
-        }>
+        }
+        {...overrides}>
         {options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
             {option.label}

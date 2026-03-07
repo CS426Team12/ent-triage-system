@@ -28,8 +28,8 @@ import {
   TimelineDot,
   TimelineOppositeContent,
 } from "@mui/lab";
-import { useTriageCases } from "../../context/TriageCaseContext";
-import { usePatients } from "../../context/PatientContext";
+import { triageCaseService } from "../../api/triageCaseService";
+import { patientService } from "../../api/patientService";
 import {
   FIELD_LABELS,
   URGENCY_LABELS,
@@ -58,9 +58,6 @@ export const CaseHistory = ({ caseId, patientId }) => {
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  const { fetchCaseChangelog } = useTriageCases();
-  const { fetchPatientChangelog } = usePatients();
-
   useEffect(() => {
     if (caseId && patientId) {
       loadHistory();
@@ -87,8 +84,8 @@ export const CaseHistory = ({ caseId, patientId }) => {
     setLoading(true);
     try {
       const [caseHistory, patientHistory] = await Promise.all([
-        fetchCaseChangelog(caseId),
-        fetchPatientChangelog(patientId),
+        triageCaseService.getCaseChangelog(caseId),
+        patientService.getPatientChangelog(patientId),
       ]);
 
       const caseEntries = (caseHistory || []).map((entry) => ({

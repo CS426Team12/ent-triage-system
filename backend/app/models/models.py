@@ -9,6 +9,7 @@ class UserBase(SQLModel):
     lastName: str
     email: str
     role: str
+    isAdmin: bool = False
 
 class UserCreate(UserBase):
     password: Optional[str] = None
@@ -18,6 +19,7 @@ class UserUpdate(SQLModel):
     lastName: Optional[str] = None
     email: Optional[str] = None
     role: Optional[str] = None
+    isAdmin: Optional[bool] = None
 
 class UserPublic(SQLModel):
     userID: uuid.UUID
@@ -26,6 +28,7 @@ class UserPublic(SQLModel):
     email: str
     role: str
     lastLogin: Optional[datetime] = None
+    isAdmin: bool = False
     calendarID: Optional[str] = None
     calendarColor: Optional[str] = None
 
@@ -44,6 +47,7 @@ class User(SQLModel, table=True):
     lastLogin: datetime = Field(default_factory=datetime.now)
     lastName: str
     email: str = Field(unique=True)
+    isAdmin: bool = False
     calendarID: Optional[str] = None
     calendarColor: Optional[str] = None
 

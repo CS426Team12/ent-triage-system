@@ -25,6 +25,7 @@ export default function Navbar() {
   const userFirstName = user?.firstName ?? "";
   const userLastName = user?.lastName ?? "";
   const username = `${userFirstName} ${userLastName}`;
+  const isAdmin = user?.isAdmin ?? false;
 
   const handleOpenUserMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -54,7 +55,7 @@ export default function Navbar() {
           ENT Triage System
         </Typography>
         <Stack direction="row" spacing={1} sx={{ mr: 2 }}>
-          {NAV_PAGES.filter((p) => !p.role || p.role === userRole).map(
+          {NAV_PAGES.filter((p) => !p.roles || p.roles.includes(userRole) || (p.hasAdminPermission && isAdmin)).map(
             ({ label, path, icon: Icon }) => (
               <Button
                 key={label}

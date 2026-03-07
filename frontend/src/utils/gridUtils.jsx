@@ -6,9 +6,9 @@ import { URGENCY_PRIORITY, URGENCY_LABELS } from "../utils/consts";
 import { URGENCY_COLORS } from "../theme";
 import { CaseDetailsDialog } from "../components/caseDetails/CaseDetailsDialog";
 import EditUserDialog from "../components/admin/EditUserDialog";
-import { useTriageCases } from "../context/TriageCaseContext";
-import { usePatients } from "../context/PatientContext";
 import { userService } from "../api/userService";
+import { triageCaseService } from "../api/triageCaseService";
+import { patientService } from "../api/patientService";
 import { toast } from "../utils/toast";
 import { UrgencyChangeIndicator } from "../components/UrgencyChangeIndicator";
 
@@ -34,8 +34,6 @@ export const UrgencyCellRenderer = (params) => {
 
 export const EditCaseButtonCellRenderer = (params) => {
   const [open, setOpen] = React.useState(false);
-  const { updateCase, reviewCase } = useTriageCases();
-  const { updatePatient } = usePatients();
   const caseData = params.data;
 
   const handleOpen = () => {
@@ -53,7 +51,7 @@ export const EditCaseButtonCellRenderer = (params) => {
     try {
       if (isReviewing) {
         // review case (no patient updates during review)
-        await reviewCase(caseData.caseID, {
+        await triageCaseService.reviewCase(caseData.caseID, {
           reviewReason: updatedData.reviewReason,
           scheduledDate: updatedData.scheduledDate || null,
         });
@@ -88,16 +86,18 @@ export const EditCaseButtonCellRenderer = (params) => {
 
         // update patient if there are patient changes
         if (Object.keys(patientUpdates).length > 0) {
-          await updatePatient(caseData.patientID, patientUpdates);
+          await patientService.updatePatient(caseData.patientID, patientUpdates);
         }
 
         // update case if there are case changes
         if (Object.keys(caseUpdates).length > 0) {
-          await updateCase(caseData.caseID, caseUpdates);
+          await triageCaseService.updateCase(caseData.caseID, caseUpdates);
         }
 
         toast.success("Successfully updated case");
       }
+      params.onCaseUpdated?.(); // refresh grid after update
+      handleClose();
     } catch (err) {
       toast.error("Failed to update case.");
       console.error("Failed to update case", err);

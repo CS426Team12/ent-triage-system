@@ -56,6 +56,8 @@ export const RETURNING_PATIENT_OPTIONS = [
 ];
 
 export const NAV_PAGES = [
+  { label: "Dashboard", path: "/dashboard", roles: ["physician", "staff"], icon: Assessment },
+  { label: "Admin Portal", path: "/admin", roles: ["admin"], icon: SupervisorAccount, hasAdminPermission: true },
   { label: "Dashboard", path: "/dashboard", icon: Assessment },
   { label: "Admin Portal", path: "/admin", role: "admin", icon: SupervisorAccount },
   { label: "Calendar", path: "/calendar", icon: CalendarMonth },
@@ -66,6 +68,18 @@ export const USER_ROLE_OPTIONS = [
   { value: "staff", label: "Staff" },
   { value: "admin", label: "Admin" },
 ];
+
+export const AI_REASONING_FLAG_LABELS = {
+  SYMPTOM: "Symptom(s)",
+  SEVERITY: "Severity",
+  PROGRESSION: "Progression",
+  DURATION: "Duration", 
+  RED_FLAG: "Red Flag(s)",
+  RELIEVING_FACTORS: "Relieving Factors",
+  AGGRAVATING_FACTORS: "Aggravating Factors",
+  ASSOCIATED_SYMPTOMS: "Associated Symptoms",
+  MEDICAL_HISTORY: "Medical History"
+};
 
 // helpers for changing roles to Title Case for display
 export const ROLE_LABEL_MAP = USER_ROLE_OPTIONS.reduce((acc, opt) => {

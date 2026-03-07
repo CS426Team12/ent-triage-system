@@ -23,7 +23,8 @@ CREATE TABLE "User" (
     "passwordHash"  TEXT NOT NULL,
     "lastLogin"     TIMESTAMPTZ,
     "calendarID"    TEXT,
-    "calendarColor" TEXT
+    "calendarColor" TEXT,
+    "isAdmin"      BOOLEAN DEFAULT FALSE,
 );
 
 -- ============================================================
