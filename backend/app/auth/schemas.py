@@ -18,7 +18,6 @@ class UserResponse(SQLModel):
     firstName: str
     lastName: str
     first_initial: str
-    isAdmin: bool = False
 
 
     

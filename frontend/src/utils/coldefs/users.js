@@ -32,15 +32,6 @@ export const userColumnDefs = (onUserUpdated) => [
     valueFormatter: (params) => roleLabel(params.value),
   },
   {
-    headerName: 'Admin',
-    field: 'isAdmin',
-    flex: 0.25,
-    minWidth: 100,
-    sortable: true,
-    cellRenderer: 'agCheckboxCellRenderer',
-    cellRendererParams: { disabled: true },
-  },
-  {
     headerName: 'Edit',
     flex: 0.25,
     minWidth: 100,

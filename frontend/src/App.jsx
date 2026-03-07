@@ -41,7 +41,7 @@ function App() {
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute requireRoles={["physician", "staff"]}>
+                  <ProtectedRoute>
                     <Dashboard />
                   </ProtectedRoute>
                 }
@@ -49,7 +49,7 @@ function App() {
               <Route
                 path="/admin"
                 element={
-                  <ProtectedRoute requireAdmin={true}>
+                  <ProtectedRoute requiredRole="admin">
                     <AdminPortal />
                   </ProtectedRoute>
                 }

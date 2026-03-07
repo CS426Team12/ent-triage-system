@@ -24,7 +24,7 @@ def get_audit_logs(
 ) -> Any:
     logger.info(f"GET /audit-logs/ - limit: {limit}, user: {current_user.email}")
     # Only allow access to audit logs if the user is an admin
-    if not current_user.isAdmin:
+    if current_user.role != "admin":
         logger.warning(f"Unauthorized access attempt to audit logs by user: {current_user.email}")
         raise HTTPException(status_code=403, detail="Access denied")
     

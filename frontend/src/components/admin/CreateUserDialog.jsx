@@ -7,11 +7,9 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Grid,
+  Box,
   Typography,
-  Divider,
-  FormControlLabel,
-  Switch,
+  Divider
 } from "@mui/material";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
@@ -27,7 +25,6 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
       lastName: "",
       email: "",
       role: "",
-      isAdmin: false,
     },
     validationSchema: Yup.object({
       firstName: Yup.string().required("First name is required"),
@@ -36,11 +33,6 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
         .email("Invalid email address")
         .required("Email is required"),
       role: Yup.string().required("Role is required"),
-      isAdmin: Yup.boolean().when("role", {
-        is: "admin",
-        then: (schema) => schema.oneOf([true], "Admin role requires admin permissions to be enabled"),
-        otherwise: (schema) => schema,
-      }),
     }),
     onSubmit: async (values) => {
       setSubmitting(true);
@@ -55,21 +47,16 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
     onClose();
   };
 
-    const handleRoleChange = (e) => {
-    formik.setFieldValue("role", e.target.value);
-    if (e.target.value === "admin") {
-      formik.setFieldValue("isAdmin", true);
-    }
-  };
-
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        <Typography sx={{ fontWeight: 600 }}>Create New User</Typography>
-      </DialogTitle>
+        <DialogTitle>
+          <Typography sx={{ fontWeight: 600 }}>
+            Create New User
+          </Typography>
+        </DialogTitle>
       <Divider />
       <DialogContent>
-        <Grid container spacing={2}>
+        <Box display="flex" flexDirection="column" gap={2}>
           <RenderTextField
             editMode={true}
             formik={formik}
@@ -95,36 +82,15 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
             fieldName="role"
             label="Role *"
             options={USER_ROLE_OPTIONS}
-            overrides={{ onChange: handleRoleChange }}
           />
-          <Grid size={12}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-              Admin Permissions
-            </Typography>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formik.values.isAdmin}
-                  onChange={(e) =>
-                    formik.setFieldValue("isAdmin", e.target.checked)
-                  }
-                  disabled={formik.values.role === "admin"}
-                />
-              }
-            />
-          </Grid>
           <Typography variant="caption" color="textSecondary" sx={{ mt: 1 }}>
             An invitation email with login credentials will be sent to the user.
           </Typography>
-        </Grid>
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button
-          disabled={submitting || !formik.isValid}
-          onClick={formik.handleSubmit}
-          variant="contained"
-        >
+        <Button disabled={submitting || !formik.isValid} onClick={formik.handleSubmit} variant="contained">
           Create User
         </Button>
       </DialogActions>
