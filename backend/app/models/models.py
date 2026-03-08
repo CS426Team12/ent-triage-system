@@ -1,7 +1,8 @@
 from sqlmodel import SQLModel, Field
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime, date, timezone
 import uuid
+from sqlalchemy.dialects.postgresql import JSONB
 
 # ============= USER MODELS =============
 class UserBase(SQLModel):
@@ -9,6 +10,7 @@ class UserBase(SQLModel):
     lastName: str
     email: str
     role: str
+    isAdmin: bool = False
 
 class UserCreate(UserBase):
     password: Optional[str] = None
@@ -18,6 +20,7 @@ class UserUpdate(SQLModel):
     lastName: Optional[str] = None
     email: Optional[str] = None
     role: Optional[str] = None
+    isAdmin: Optional[bool] = None
 
 class UserPublic(SQLModel):
     userID: uuid.UUID
@@ -26,6 +29,9 @@ class UserPublic(SQLModel):
     email: str
     role: str
     lastLogin: Optional[datetime] = None
+    isAdmin: bool = False
+    calendarID: Optional[str] = None
+    calendarColor: Optional[str] = None
 
 class UsersList(SQLModel):
     data: list[UserPublic]
@@ -42,6 +48,9 @@ class User(SQLModel, table=True):
     lastLogin: datetime = Field(default_factory=datetime.now)
     lastName: str
     email: str = Field(unique=True)
+    isAdmin: bool = False
+    calendarID: Optional[str] = None
+    calendarColor: Optional[str] = None
     isActive: bool = Field(default=False)
 
 class Message(SQLModel):
@@ -102,6 +111,8 @@ class TriageCaseBase(SQLModel):
     clinicianNotes: Optional[str] = None
     overrideSummary: Optional[str] = None
     overrideUrgency: Optional[str] = None
+    flags: Optional[Any] = Field(sa_type=JSONB)
+    activeAppointmentID: Optional[uuid.UUID] = None
 
 class TriageCase(TriageCaseBase, table=True):
     __tablename__ = "TriageCase"
@@ -122,6 +133,8 @@ class TriageCaseCreate(SQLModel):
     AIConfidence: Optional[float] = None
     AISummary: Optional[str] = None
     AIUrgency: Optional[str] = None
+    flags: Optional[Any] = Field(sa_type=JSONB)
+
 
 class TriageCaseUpdate(SQLModel):
     transcript: Optional[str] = None
@@ -142,7 +155,6 @@ class TriageCaseUpdate(SQLModel):
 
 class TriageCaseReview(SQLModel):
     reviewReason: str
-    scheduledDate: Optional[datetime] = None
 
 class TriageCasePublic(TriageCaseBase, PatientBase):
     caseID: uuid.UUID

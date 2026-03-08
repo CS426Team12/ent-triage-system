@@ -11,4 +11,6 @@ python-multipart
 python-jose[cryptography]
 pydantic-settings
 redis
+google-api-python-client
+google-auth
 resend

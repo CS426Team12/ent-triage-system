@@ -15,3 +15,9 @@ from .models import (
   PatientPublic,
   PatientChangelog
 )
+from .auditLog import (
+  AuditLog,
+  AuditLogPublic,
+  AuditLogsPublic,
+  AuditLogBase,
+)

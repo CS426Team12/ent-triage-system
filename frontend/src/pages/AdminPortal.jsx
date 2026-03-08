@@ -18,10 +18,16 @@ export default function AdminPortal() {
   }, []);
 
   const fetchUsers = async () => {
-    setLoading(true);
-    const results = await userService.getAllUsers();
-    setUsers(results.data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const results = await userService.getAllUsers();
+      setUsers(results.data || []);
+    } catch (err) {
+      toast.error("Failed to load users, please refresh.");
+      console.error("Error fetching users:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateUser = async (userData) => {

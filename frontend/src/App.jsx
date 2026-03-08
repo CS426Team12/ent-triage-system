@@ -6,8 +6,6 @@ import {
 } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
-import { TriageCaseProvider } from "./context/TriageCaseContext.jsx";
-import { PatientProvider } from "./context/PatientContext.jsx";
 import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import AdminPortal from "./pages/AdminPortal.jsx";
@@ -19,55 +17,60 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ToastContainer } from "react-toastify";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Calendar } from "./pages/Calendar.jsx";
 
 function App() {
   return (
     <AuthProvider>
-      <TriageCaseProvider>
-        <PatientProvider>
-          <ThemeProvider theme={theme}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <CssBaseline />
-              <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
+      <ThemeProvider theme={theme}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <CssBaseline />
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
+          <Router>
+            <Routes>
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/set-password" element={<SetPassword />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute requireRoles={["physician", "staff"]}>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
               />
-              <Router>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/login" replace />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/set-password" element={<SetPassword />} />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin"
-                    element={
-                      <ProtectedRoute requiredRole="admin">
-                        <AdminPortal />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-              </Router>
-            </LocalizationProvider>
-          </ThemeProvider>
-        </PatientProvider>
-      </TriageCaseProvider>
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminPortal />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/calendar"
+                element={
+                  <ProtectedRoute requireRoles={["physician", "staff"]}>
+                    <Calendar />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Router>
+        </LocalizationProvider>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

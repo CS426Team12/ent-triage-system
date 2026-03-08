@@ -5,42 +5,44 @@ import SearchableDataGrid from "../components/grid/SearchableDataGrid";
 import { unreviewedColDefs } from "../utils/coldefs/unreviewedTriageCases";
 import { reviewedColDefs } from "../utils/coldefs/reviewedTriageCases";
 import Navbar from "../components/Navbar";
-import { useTriageCases } from "../context/TriageCaseContext";
 import { STATUS_VALUES } from "../utils/consts";
+import { triageCaseService } from "../api/triageCaseService";
 
 export default function Dashboard() {
-  const { cases, fetchCases, getUnreviewedCases, getReviewedCases } = useTriageCases(); 
   const [activeTab, setActiveTab] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
+  const [cases, setCases] = React.useState([]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
-  React.useEffect(() => {
-    const getCases = async () => {
-      console.log("Fetching cases");
+  const fetchCases = async () => {
+    try {
       setLoading(true);
-      try {
-        await fetchCases();
-      } catch (err) {
-        console.error("Failed to fetch cases", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (cases.length === 0) {
-      getCases();
+      const results = await triageCaseService.getAllCases();
+      setCases(results.cases || []);
+    } catch (err) {
+      toast.error("Failed to load cases, please refresh.");
+      console.error("Error fetching cases:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [fetchCases]);
+  };
+
+  React.useEffect(() => {
+    fetchCases();
+  }, []);
 
   const unreviewedCases = React.useMemo(() => {
-    return getUnreviewedCases();
-  }, [getUnreviewedCases]);
+    if (!cases) return [];
+    return cases.filter((c) => c.status !== STATUS_VALUES.REVIEWED);
+  }, [cases]);
 
   const reviewedCases = React.useMemo(() => {
-    return getReviewedCases();
-  }, [getReviewedCases]);
+    if (!cases) return [];
+    return cases.filter((c) => c.status === STATUS_VALUES.REVIEWED);
+  }, [cases]);
 
   return (
     <>
@@ -55,7 +57,8 @@ export default function Dashboard() {
                 borderColor: "divider",
                 borderRadius: 2,
                 overflow: "hidden",
-              }}>
+              }}
+            >
               <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Box
@@ -67,13 +70,15 @@ export default function Dashboard() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                    }}>
+                    }}
+                  >
                     <Assessment sx={{ fontSize: 24, color: "white" }} />
                   </Box>
                   <Typography
                     variant="h5"
                     color="text.primary"
-                    sx={{ fontWeight: 600 }}>
+                    sx={{ fontWeight: 600 }}
+                  >
                     Dashboard
                   </Typography>
                 </Stack>
@@ -85,7 +90,8 @@ export default function Dashboard() {
                   borderBottom: 1,
                   borderColor: "divider",
                   bgcolor: "background.paper",
-                }}>
+                }}
+              >
                 <Tab
                   label={`Unreviewed Cases (${unreviewedCases?.length || 0})`}
                   sx={{ textTransform: "none", fontWeight: 500 }}
@@ -99,14 +105,14 @@ export default function Dashboard() {
                 {activeTab === 0 && (
                   <SearchableDataGrid
                     rowData={unreviewedCases || []}
-                    columnDefs={unreviewedColDefs}
+                    columnDefs={unreviewedColDefs(fetchCases)}
                     loading={loading}
                   />
                 )}
                 {activeTab === 1 && (
                   <SearchableDataGrid
                     rowData={reviewedCases || []}
-                    columnDefs={reviewedColDefs}
+                    columnDefs={reviewedColDefs(fetchCases)}
                     loading={loading}
                   />
                 )}

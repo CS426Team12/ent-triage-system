@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
         authService.setAccessToken(token);
         await fetchUser();
       } catch (err) {
-        console.log("Not logged in:", err);
+        console.error("Not logged in:", err);
       } finally {
         setLoading(false);
       }
@@ -46,7 +46,7 @@ export function AuthProvider({ children }) {
 
   // Logout
   const logout = async () => {
-    await apiClient.post("/auth/logout");
+    await apiClient.post("/auth/logout", {email : user.email});
     authService.logout();
     setUser(null);
   };

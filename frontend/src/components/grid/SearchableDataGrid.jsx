@@ -18,6 +18,7 @@ const SearchableDataGrid = ({
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <TextField
+        aria-label="Search table"
         placeholder="Search"
         value={search}
         onChange={handleSearchChange}

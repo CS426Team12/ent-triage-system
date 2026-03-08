@@ -1,4 +1,4 @@
-import { SupervisorAccount, Assessment } from '@mui/icons-material';
+import { SupervisorAccount, Assessment, CalendarMonth } from '@mui/icons-material';
 
 export const FIELD_LABELS = {
   firstName: 'First Name',
@@ -56,8 +56,9 @@ export const RETURNING_PATIENT_OPTIONS = [
 ];
 
 export const NAV_PAGES = [
-  { label: "Dashboard", path: "/dashboard", icon: Assessment },
-  { label: "Admin Portal", path: "/admin", role: "admin", icon: SupervisorAccount },
+  { label: "Dashboard", path: "/dashboard", roles: ["physician", "staff"], icon: Assessment },
+  { label: "Admin Portal", path: "/admin", roles: ["admin"], icon: SupervisorAccount, hasAdminPermission: true },
+  { label: "Calendar", path: "/calendar", roles: ["physician", "staff"], icon: CalendarMonth },
 ];
 
 export const USER_ROLE_OPTIONS = [
@@ -65,6 +66,18 @@ export const USER_ROLE_OPTIONS = [
   { value: "staff", label: "Staff" },
   { value: "admin", label: "Admin" },
 ];
+
+export const AI_REASONING_FLAG_LABELS = {
+  SYMPTOM: "Symptom(s)",
+  SEVERITY: "Severity",
+  PROGRESSION: "Progression",
+  DURATION: "Duration", 
+  RED_FLAG: "Red Flag(s)",
+  RELIEVING_FACTORS: "Relieving Factors",
+  AGGRAVATING_FACTORS: "Aggravating Factors",
+  ASSOCIATED_SYMPTOMS: "Associated Symptoms",
+  MEDICAL_HISTORY: "Medical History"
+};
 
 // helpers for changing roles to Title Case for display
 export const ROLE_LABEL_MAP = USER_ROLE_OPTIONS.reduce((acc, opt) => {
@@ -77,3 +90,12 @@ export const roleLabel = (role) => {
   const key = String(role).toLowerCase();
   return ROLE_LABEL_MAP[key];
 };
+
+export const DURATIONS = [
+  { label: "15 min", value: 15  },
+  { label: "30 min", value: 30  },
+  { label: "45 min", value: 45  },
+  { label: "1 hr",   value: 60  },
+  { label: "1.5 hr", value: 90  },
+  { label: "2 hr",   value: 120 },
+];

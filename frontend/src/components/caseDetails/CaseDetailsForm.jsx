@@ -2,6 +2,7 @@ import { Box, Grid, Typography, Button } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
+import AIReasoningField from "../fields/AIReasoningField";
 import { UrgencyChangeIndicator } from "../UrgencyChangeIndicator";
 import {
   URGENCY_VALUES,
@@ -18,6 +19,16 @@ export const CaseDetailsForm = ({
   editMode,
   setEditMode,
 }) => {
+  //Mocked data for now
+  const test_flags = [
+    { tag: "SYMPTOM", keyword: "sore throat" },
+    { tag: "SYMPTOM", keyword: "cough" },
+    { tag: "SYMPTOM", keyword: "cough" },
+    { tag: "SYMPTOM", keyword: "cough" },
+    { tag: "SEVERITY", keyword: "mild" },
+    { tag: "RED_FLAG", keyword: "fever" },
+  ];
+
   return (
     <Grid container spacing={4}>
       <Grid>
@@ -72,34 +83,32 @@ export const CaseDetailsForm = ({
         <Box>
           <Box mb={2}>
             <Box display="flex" flexDirection="row" alignItems="center">
-              <Typography
-                variant="subtitle2"
-                color="textSecondary"
-                sx={{ fontWeight: 500 }}
-              >
-                {FIELD_LABELS.overrideUrgency}
-              </Typography>
-              <UrgencyChangeIndicator
-                prevUrgency={caseData.previousUrgency || caseData.AIUrgency}
-                currentUrgency={caseData.overrideUrgency || caseData.AIUrgency}
+              <RenderSelectField
+                editMode={editMode}
+                formik={formik}
+                fieldName="overrideUrgency"
+                label="Case Urgency"
+                options={Object.values(URGENCY_VALUES).map((v) => ({
+                  value: v,
+                  label: URGENCY_LABELS[v],
+                }))}
+                renderChip
               />
+              <Box marginTop={3}>
+                <UrgencyChangeIndicator
+                  prevUrgency={caseData.previousUrgency || caseData.AIUrgency}
+                  currentUrgency={
+                    caseData.overrideUrgency || caseData.AIUrgency
+                  }
+                />
+              </Box>
             </Box>
-            <RenderSelectField
-              editMode={editMode}
-              formik={formik}
-              fieldName="overrideUrgency"
-              label=""
-              options={Object.values(URGENCY_VALUES).map((v) => ({
-                value: v,
-                label: URGENCY_LABELS[v],
-              }))}
-              renderChip
-            />
           </Box>
           <Box mb={2}>
             <Typography variant="subtitle2" color="textSecondary">
               {FIELD_LABELS.dateCreated}
             </Typography>
+
             <Typography variant="body2">
               {dayjs(caseData.dateCreated).format("MM/DD/YYYY, h:mm A")}
             </Typography>
@@ -108,6 +117,8 @@ export const CaseDetailsForm = ({
             {FIELD_LABELS.AISummary}
           </Typography>
           <Typography variant="body2">{caseData.AISummary || "---"}</Typography>
+          {/* TODO: update to caseData.flags */}
+          <AIReasoningField flags={caseData.flags} />
         </Box>
         {editMode || formik.values.overrideSummary ? (
           <RenderTextField
