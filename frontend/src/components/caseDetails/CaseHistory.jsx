@@ -16,6 +16,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Divider,
   Grid,
 } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
@@ -550,6 +551,9 @@ export const CaseHistory = ({ caseId, patientId, handleClose }) => {
           </Grid>
         </>
       )}
+      <Grid item size={12}>
+        <Divider />
+      </Grid>
       <Grid item display="flex" justifyContent="flex-end">
         <Button onClick={handleClose}>Close</Button>
       </Grid>

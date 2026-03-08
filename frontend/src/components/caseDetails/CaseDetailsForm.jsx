@@ -1,6 +1,5 @@
 import React from "react";
 import { Box, Grid, Typography, Button, Divider } from "@mui/material";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
 import AIReasoningField from "../fields/AIReasoningField";
@@ -241,6 +240,9 @@ export const CaseDetailsForm = ({
             </Box>
           )}
         </Box>
+      </Grid>
+      <Grid item size={12}>
+        <Divider />
       </Grid>
       <Grid item size={12} display="flex" justifyContent="flex-end" gap={1}>
         {editMode ? (

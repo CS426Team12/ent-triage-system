@@ -27,7 +27,6 @@ function TabPanel({ children, value, index }) {
 export const CaseDetailsDialog = ({ open, onClose, caseData, onUpdated }) => {
   const [formData, setFormData] = useState({});
   const [editMode, setEditMode] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
@@ -112,7 +111,7 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onUpdated }) => {
           sx={{ textTransform: "none" }}
         />
       </Tabs>
-      <DialogContent sx={{ minHeight: "60vh" }}>
+      <DialogContent>
         <TabPanel value={activeTab} index={0}>
           <CaseDetailsForm
             formik={formik}
