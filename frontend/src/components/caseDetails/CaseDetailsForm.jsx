@@ -16,6 +16,7 @@ import {
   FIELD_LABELS,
 } from "../../utils/consts";
 import dayjs from "dayjs";
+import FeedbackWidget from "./feedback/FeedbackWidget";
 
 export const CaseDetailsForm = ({
   formik,
@@ -26,15 +27,6 @@ export const CaseDetailsForm = ({
   handleClose,
 }) => {
   const [submitting, setSubmitting] = React.useState(false);
-  //Mocked data for now
-  const test_flags = [
-    { tag: "SYMPTOM", keyword: "sore throat" },
-    { tag: "SYMPTOM", keyword: "cough" },
-    { tag: "SYMPTOM", keyword: "cough" },
-    { tag: "SYMPTOM", keyword: "cough" },
-    { tag: "SEVERITY", keyword: "mild" },
-    { tag: "RED_FLAG", keyword: "fever" },
-  ];
 
   const handleSave = async () => {
     const updatedData = getChangedFields(formik.initialValues, formik.values);
@@ -190,8 +182,8 @@ export const CaseDetailsForm = ({
             <Typography variant="body2">
               {caseData.AISummary || "---"}
             </Typography>
-            {/* TODO: update to caseData.flags */}
             <AIReasoningField flags={caseData.flags} />
+            <FeedbackWidget />
           </Box>
           {editMode || formik.values.overrideSummary ? (
             <RenderTextField
@@ -250,16 +242,14 @@ export const CaseDetailsForm = ({
             <Button
               disabled={submitting || !formik.isValid}
               onClick={handleSave}
-              variant="contained"
-            >
+              variant="contained">
               Save
             </Button>
             <Button
               onClick={() => {
                 formik.resetForm();
                 setEditMode(false);
-              }}
-            >
+              }}>
               Cancel
             </Button>
           </>

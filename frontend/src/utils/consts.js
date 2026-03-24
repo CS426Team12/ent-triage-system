@@ -99,3 +99,19 @@ export const DURATIONS = [
   { label: "1.5 hr", value: 90  },
   { label: "2 hr",   value: 120 },
 ];
+
+export const FEEDBACK_TAGS = {
+  MISSING_SYMPTOM: "MISSING_SYMPTOM",
+  INCORRECT_SEVERITY: "INCORRECT_SEVERITY",
+  IRRELEVANT_INFO: "IRRELEVANT_INFO",
+  TOO_VAGUE: "TOO_VAGUE",
+  OTHER: "OTHER",
+};
+
+export const FEEDBACK_TAG_LABELS = {
+  [FEEDBACK_TAGS.MISSING_SYMPTOM]: "Missing symptoms",
+  [FEEDBACK_TAGS.INCORRECT_SEVERITY]: "Severity wrong",
+  [FEEDBACK_TAGS.IRRELEVANT_INFO]: "Irrelevant info",
+  [FEEDBACK_TAGS.TOO_VAGUE]: "Too vague",
+  [FEEDBACK_TAGS.OTHER]: "Other",
+};
