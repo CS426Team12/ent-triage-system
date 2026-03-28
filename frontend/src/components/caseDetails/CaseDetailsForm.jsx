@@ -25,6 +25,8 @@ export const CaseDetailsForm = ({
   setEditMode,
   onUpdated,
   handleClose,
+  feedback,
+  onFeedbackChange,
 }) => {
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -183,7 +185,10 @@ export const CaseDetailsForm = ({
               {caseData.AISummary || "---"}
             </Typography>
             <AIReasoningField flags={caseData.flags} />
-            <FeedbackWidget />
+            <FeedbackWidget
+              initialFeedback={feedback}
+              onFeedbackChange={onFeedbackChange}
+            />
           </Box>
           {editMode || formik.values.overrideSummary ? (
             <RenderTextField

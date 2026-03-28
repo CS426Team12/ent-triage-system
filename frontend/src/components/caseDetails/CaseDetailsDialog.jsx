@@ -15,6 +15,8 @@ import { CaseDetailsForm } from "./CaseDetailsForm";
 import { CaseHistory } from "./CaseHistory";
 import { ScheduleTab } from "./schedule/ScheduleTab";
 import { STATUS_VALUES } from "../../utils/consts";
+import { feedbackService } from "../../api/feedbackService";
+import { toast } from "../../utils/toast";
 
 function TabPanel({ children, value, index }) {
   return (
@@ -28,12 +30,34 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onUpdated }) => {
   const [formData, setFormData] = useState({});
   const [editMode, setEditMode] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  const [feedbackChanged, setFeedbackChanged] = useState(false);
 
   useEffect(() => {
     if (caseData) {
       setFormData(caseData);
     }
   }, [caseData]);
+
+  // Load existing feedback when case changes or dialog opens
+  const loadFeedback = async () => {
+    try {
+      const existingFeedback = await feedbackService.getFeedbackByCaseId(
+        caseData.caseID,
+      );
+      setFeedback(existingFeedback);
+      setFeedbackChanged(false);
+    } catch (err) {
+      // Feedback may not exist, which is fine
+      console.log("No feedback found for this case");
+    }
+  };
+
+  useEffect(() => {
+    if (caseData?.caseID && open) {
+      loadFeedback();
+    }
+  }, [caseData?.caseID, open]);
 
   const formik = useFormik({
     validateOnMount: true,
@@ -75,15 +99,52 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onUpdated }) => {
     }),
   });
 
-  const handleClose = () => {
+  const saveFeedback = async () => {
+    if (!feedbackChanged || !feedback) return;
+
+    try {
+      await feedbackService.submitFeedback(caseData.caseID, {
+        caseID: caseData.caseID,
+        rating: feedback.rating || undefined,
+        tags:
+          feedback.tags && feedback.tags.length > 0 ? feedback.tags : undefined,
+        comment: feedback.comment || undefined,
+      });
+      setFeedbackChanged(false);
+      await loadFeedback();
+    } catch (err) {
+      toast.error("Failed to save feedback");
+      console.error("Error saving feedback:", err);
+    }
+  };
+
+  const handleClose = async () => {
     if (editMode) {
       return;
+    }
+    // Save feedback from the Details tab before closing
+    if (activeTab === 0) {
+      try {
+        await saveFeedback();
+      } catch (err) {
+        toast.error("Failed to save feedback");
+        console.error("Error saving feedback on close:", err);
+      }
     }
     setActiveTab(0);
     onClose();
   };
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = async (event, newValue) => {
+    // Save feedback from the Details tab before switching tabs
+    if (activeTab === 0) {
+      try {
+        await saveFeedback();
+      } catch (err) {
+        toast.error("Failed to save feedback");
+        console.error("Error saving feedback on tab change:", err);
+      }
+    }
     if (activeTab !== 0 && editMode) {
       setEditMode(false);
       formik.resetForm();
@@ -102,8 +163,7 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onUpdated }) => {
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
-        sx={{ borderBottom: 1, borderColor: "divider", px: 3 }}
-      >
+        sx={{ borderBottom: 1, borderColor: "divider", px: 3 }}>
         <Tab label="Details" sx={{ textTransform: "none" }} />
         <Tab label="History" sx={{ textTransform: "none" }} />
         <Tab
@@ -120,6 +180,11 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onUpdated }) => {
             setEditMode={setEditMode}
             onUpdated={onUpdated}
             handleClose={handleClose}
+            feedback={feedback}
+            onFeedbackChange={(updatedFeedback) => {
+              setFeedback(updatedFeedback);
+              setFeedbackChanged(true);
+            }}
           />
         </TabPanel>
         <TabPanel value={activeTab} index={1}>

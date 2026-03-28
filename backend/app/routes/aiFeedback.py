@@ -2,7 +2,7 @@ import uuid
 import logging
 from typing import Any, Optional
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Depends, Request, status
+from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
 from app.core.dependencies import get_db
 from app.auth.dependencies import get_current_user
@@ -30,9 +30,17 @@ def save_feedback(
     if existing:
         # Update
         existing.rating = payload.rating
-        existing.tags = payload.tags
-        existing.comment = payload.comment
         existing.updatedAt = datetime.utcnow()
+        
+        # Clear tags and comment if rating is updated to "up" or if rating is removed (set to None)
+        if payload.rating == "up" or payload.rating == None:
+            existing.tags = []
+            existing.comment = None
+
+        else:
+            existing.tags = payload.tags
+            existing.comment = payload.comment
+
 
         session.add(existing)
         session.commit()

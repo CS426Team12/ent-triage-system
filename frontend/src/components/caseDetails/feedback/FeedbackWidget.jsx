@@ -2,7 +2,6 @@ import {
   Typography,
   Box,
   IconButton,
-  Button,
   Tooltip,
   Collapse,
   ToggleButtonGroup,
@@ -16,18 +15,57 @@ import ThumbDownOffAltIcon from "@mui/icons-material/ThumbDownOffAlt";
 import { APP_COLORS } from "../../../theme";
 import { FEEDBACK_TAGS, FEEDBACK_TAG_LABELS } from "../../../utils/consts";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function FeedbackWidget({}) {
+export default function FeedbackWidget({ initialFeedback, onFeedbackChange }) {
   const [rating, setRating] = useState(null);
   const [tags, setTags] = useState([]);
   const [comment, setComment] = useState("");
+
   const isOtherSelected = tags.includes(FEEDBACK_TAGS.OTHER);
+
+  // Load existing feedback on mount or when initialFeedback changes
+  useEffect(() => {
+    if (initialFeedback) {
+      setRating(initialFeedback.rating || null);
+      setTags(initialFeedback.tags || []);
+      setComment(initialFeedback.comment || "");
+    } else {
+      setRating(null);
+      setTags([]);
+      setComment("");
+    }
+  }, [initialFeedback]);
+
+  
   const handleTagsChange = (e, newTags) => {
     if (!newTags.includes(FEEDBACK_TAGS.OTHER)) {
       setComment("");
     }
     setTags(newTags);
+    notifyChange(rating, newTags, comment);
+  };
+
+  const handleRatingChange = (newRating) => {
+    const updatedRating = rating === newRating ? null : newRating;
+    setRating(updatedRating);
+    notifyChange(updatedRating, tags, comment);
+  };
+
+  const handleCommentChange = (e) => {
+    const newComment = e.target.value;
+    setComment(newComment);
+    notifyChange(rating, tags, newComment);
+  };
+
+  const notifyChange = (currentRating, currentTags, currentComment) => {
+    if (onFeedbackChange) {
+      onFeedbackChange({
+        rating: currentRating,
+        tags: currentTags,
+        comment: currentComment,
+      });
+    }
   };
 
   return (
@@ -35,7 +73,7 @@ export default function FeedbackWidget({}) {
       <Box display="flex" alignItems="center" gap={1}>
         <Typography variant="caption">Was this AI summary helpful?</Typography>
         <Tooltip title="Helpful">
-          <IconButton onClick={() => setRating(rating === "up" ? null : "up")}>
+          <IconButton onClick={() => handleRatingChange("up")}>
             {rating === "up" ? (
               <ThumbUp
                 fontSize="small"
@@ -50,8 +88,7 @@ export default function FeedbackWidget({}) {
           </IconButton>
         </Tooltip>
         <Tooltip title="Not helpful">
-          <IconButton
-            onClick={() => setRating(rating === "down" ? null : "down")}>
+          <IconButton onClick={() => handleRatingChange("down")}>
             {rating === "down" ? (
               <ThumbDown
                 fontSize="small"
@@ -110,13 +147,12 @@ export default function FeedbackWidget({}) {
                 <TextField
                   variant="standard"
                   hiddenLabel
-                  autoFocus
                   fullWidth
                   size="small"
                   rows={1}
                   placeholder="Please specify..."
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  onChange={handleCommentChange}
                   InputProps={{
                     sx: {
                       fontSize: "0.75rem", //Match caption
