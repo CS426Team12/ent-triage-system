@@ -13,7 +13,11 @@ from .models import (
   TriageCasesPublic,
   TriageCaseChangelog,
   PatientPublic,
-  PatientChangelog
+  PatientChangelog,
+  AIFeedback,
+  AIFeedbackBase,
+  AIFeedbackCreate,
+  AIFeedbackPublic,
 )
 from .auditLog import (
   AuditLog,

@@ -1,8 +1,10 @@
 from sqlmodel import SQLModel, Field
+from sqlalchemy import Column
 from typing import Optional, Any
 from datetime import datetime, date, timezone
 import uuid
-from sqlalchemy.dialects.postgresql import JSONB
+from enum import Enum
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY, TEXT
 
 # ============= USER MODELS =============
 class UserBase(SQLModel):
@@ -184,3 +186,39 @@ class TriageCaseChangelog(SQLModel, table=True):
     fieldName: str = Field(max_length=100)
     oldValue: Optional[str] = None
     newValue: Optional[str] = None
+
+# ============= AI FEEDBACK MODELS =============
+class FeedbackRating(str, Enum):
+    up = "up"
+    down = "down"
+
+class AIFeedbackBase(SQLModel):
+    rating: Optional[FeedbackRating] = None
+    tags: Optional[list[str]] = Field(
+        default=None,
+        sa_column=Column(ARRAY(TEXT))
+    )    
+    comment: Optional[str] = None
+
+class AIFeedback(AIFeedbackBase, table=True):
+    __tablename__ = "AIFeedback"
+    __table_args__ = {"schema": "ent"}
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    caseID: uuid.UUID = Field(foreign_key="ent.TriageCase.caseID")
+    createdBy: Optional[uuid.UUID] = Field(default=None, foreign_key="ent.User.userID")
+
+    createdAt: datetime = Field(default_factory=datetime.utcnow)
+    updatedAt: datetime = Field(default_factory=datetime.utcnow)
+
+class AIFeedbackCreate(AIFeedbackBase):
+    caseID: uuid.UUID
+
+class AIFeedbackPublic(AIFeedbackBase):
+    id: uuid.UUID
+    caseID: uuid.UUID
+    createdBy: Optional[uuid.UUID]
+
+    createdAt: datetime
+    updatedAt: datetime
