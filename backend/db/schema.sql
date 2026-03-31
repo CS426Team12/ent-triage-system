@@ -200,6 +200,29 @@ CREATE TABLE "AuditLog" (
         FOREIGN KEY ("actorID") REFERENCES "User"("userID")
 );
 
+CREATE TABLE "AIFeedback" (
+    "id" UUID PRIMARY KEY,
+
+    "caseID" UUID NOT NULL,
+    "rating" TEXT CHECK ("rating" IN ('up', 'down')),
+
+    "tags" TEXT[],
+    "comment" TEXT,
+
+    "createdBy" UUID NOT NULL,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+
+    CONSTRAINT fk_feedback_case
+        FOREIGN KEY ("caseID") REFERENCES "TriageCase"("caseID") ON DELETE CASCADE,
+
+    CONSTRAINT fk_feedback_user
+        FOREIGN KEY ("createdBy") REFERENCES "User"("userID"),
+
+    CONSTRAINT unique_feedback_per_user_case
+        UNIQUE ("caseID", "createdBy")
+);
+
 -- ============================================================
 -- INDEXES
 -- ============================================================

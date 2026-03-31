@@ -9,6 +9,7 @@ from app.routes.user import router as user_routes
 from app.routes.patient import router as patient_routes
 from app.routes.audit import router as audit_routes
 from app.routes.calendar import router as calendar_routes
+from app.routes.aiFeedback import router as feedback_routes
 from app.core.database import engine
 from app.core.config import settings
 from app.core.dependencies import get_db
@@ -41,6 +42,7 @@ app.include_router(user_routes)
 app.include_router(patient_routes)
 app.include_router(audit_routes)
 app.include_router(calendar_routes)
+app.include_router(feedback_routes)
 
 @app.get("/")
 def root():
