@@ -187,6 +187,46 @@ class TriageCaseChangelog(SQLModel, table=True):
     oldValue: Optional[str] = None
     newValue: Optional[str] = None
 
+# ============= CASE FILE MODEL =============
+class CaseFile(SQLModel, table=True):
+    __tablename__ = "TriageCaseFile"
+    __table_args__ = {"schema": "ent"}
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    caseId: uuid.UUID = Field(foreign_key="ent.TriageCase.caseID")
+
+    fileName: str
+    fileKey: str 
+    fileType: Optional[str] = None
+
+    uploadedBy: Optional[uuid.UUID] = Field(default=None, foreign_key="ent.User.userID")
+    uploadedAt: datetime = Field(default_factory=datetime.utcnow)
+
+    description: Optional[str] = None
+    category: Optional[str] = None
+
+class CaseFilePublic(SQLModel):
+    id: uuid.UUID
+    fileName: str
+    fileType: Optional[str]
+    category: Optional[str]
+    uploadedAt: datetime
+
+    url: str 
+    urlExpiresAt: datetime
+
+class CaseFilesPublic(SQLModel):
+    files: list[CaseFilePublic]
+    count: int
+
+class CaseFileCreate(SQLModel):
+    fileName: str
+    fileKey: str
+    fileType: Optional[str]
+    category: Optional[str]
+    description: Optional[str]
+    
 # ============= AI FEEDBACK MODELS =============
 class FeedbackRating(str, Enum):
     up = "up"

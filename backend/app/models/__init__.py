@@ -18,6 +18,10 @@ from .models import (
   AIFeedbackBase,
   AIFeedbackCreate,
   AIFeedbackPublic,
+  CaseFile,
+  CaseFileCreate,
+  CaseFilePublic,
+  CaseFilesPublic,
 )
 from .auditLog import (
   AuditLog,

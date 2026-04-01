@@ -88,6 +88,21 @@ CREATE TABLE "TriageCase" (
         FOREIGN KEY ("reviewedBy") REFERENCES "User"("userID")
 );
 
+CREATE TABLE "TriageCaseFile" (
+    "id" UUID PRIMARY KEY,
+    "caseId" UUID REFERENCES "TriageCase"("caseID") ON DELETE CASCADE,
+    
+    "fileName" TEXT NOT NULL,
+    "fileKey" TEXT NOT NULL,
+    "fileType" TEXT,         
+    
+    "uploadedBy" UUID REFERENCES "User"("userID"),
+    "uploadedAt" TIMESTAMP DEFAULT NOW(),
+    
+    "description" TEXT, 
+    "category" TEXT 
+);
+
 -- ============================================================
 -- TRIAGE CASE CHANGELOG
 -- ============================================================
