@@ -5,16 +5,12 @@ PRESIGNED_URL_EXPIRATION = 600
 
 def generate_presigned_upload_url(
     file_key: str,
-    content_type: str | None = None,
     expires_in: int = PRESIGNED_URL_EXPIRATION
 ) -> str:
     params = {
         "Bucket": BUCKET_NAME,
         "Key": file_key,
     }
-
-    if content_type:
-        params["ContentType"] = content_type
 
     return s3_client.generate_presigned_url(
         "put_object",

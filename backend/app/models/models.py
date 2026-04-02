@@ -223,9 +223,9 @@ class CaseFilesPublic(SQLModel):
 class CaseFileCreate(SQLModel):
     fileName: str
     fileKey: str
-    fileType: Optional[str]
-    category: Optional[str]
-    description: Optional[str]
+    fileType: Optional[str] = None
+    category: Optional[str] = None
+    description: Optional[str] = None
     
 # ============= AI FEEDBACK MODELS =============
 class FeedbackRating(str, Enum):

@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { CaseDetailsForm } from "./CaseDetailsForm";
 import { CaseHistory } from "./CaseHistory";
+import { CaseFiles } from "./files/CaseFiles";
 import { ScheduleTab } from "./schedule/ScheduleTab";
 import { STATUS_VALUES } from "../../utils/consts";
 import { feedbackService } from "../../api/feedbackService";
@@ -170,6 +171,7 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onUpdated }) => {
           label={isUnreviewed ? "Review" : "Appointment"}
           sx={{ textTransform: "none" }}
         />
+        <Tab label="Files" sx={{ textTransform: "none" }} />
       </Tabs>
       <DialogContent>
         <TabPanel value={activeTab} index={0}>
@@ -203,6 +205,9 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onUpdated }) => {
             handleClose={handleClose}
             onUpdated={onUpdated}
           />
+        </TabPanel>
+        <TabPanel value={activeTab} index={3}>
+          <CaseFiles caseId={caseData?.caseID} />
         </TabPanel>
       </DialogContent>
     </Dialog>

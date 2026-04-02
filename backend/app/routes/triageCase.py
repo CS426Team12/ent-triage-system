@@ -489,11 +489,12 @@ def get_case_changelog(
         logger.exception(f"GET /triage-cases/{id}/changelog - Error: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve case changelog")
 
+# ================= CASE FILES ENDPOINTS =================
+# get upload url
 @router.get("/{id}/upload-url")
 def generate_upload_url(
     id: uuid.UUID,
     file_name: str, 
-    content_type: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     request: Request = None
@@ -508,7 +509,7 @@ def generate_upload_url(
         safe_file_name = re.sub(r"[^a-zA-Z0-9._-]", "_", file_name)
         file_key = f"cases/{id}/{uuid4()}_{safe_file_name}"
 
-        presigned_url = generate_presigned_upload_url(file_key, content_type=content_type)
+        presigned_url = generate_presigned_upload_url(file_key)
         return {
             "presigned_url": presigned_url,
             "file_key": file_key
@@ -517,6 +518,7 @@ def generate_upload_url(
         logger.exception(f"Error generating upload URL: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to generate upload URL")
 
+# add case file record to DB after successful upload to S3
 @router.post("/{id}/files")
 def add_case_file(
     id: uuid.UUID,
@@ -526,7 +528,7 @@ def add_case_file(
     request: Request = None
 ):
     logger.info(
-        f"POST /triage-cases/{id}/files - user: {current_user.email}, file_key: {file.file_key}"
+        f"POST /triage-cases/{id}/files - user: {current_user.email}, file_key: {file.fileKey}"
     )
 
     try:
@@ -536,7 +538,7 @@ def add_case_file(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Triage case not found"
             )
-        if not file.file_key.startswith(f"cases/{id}/"):
+        if not file.fileKey.startswith(f"cases/{id}/"):
             raise HTTPException(
                 status_code=400,
                 detail="Invalid file key for this case"
@@ -544,9 +546,9 @@ def add_case_file(
 
         case_file = CaseFile(
             caseId=id, 
-            fileKey=file.file_key,
-            fileName=file.file_name,
-            fileType=file.file_type,
+            fileKey=file.fileKey,
+            fileName=file.fileName,
+            fileType=file.fileType,
             category=file.category,
             description=file.description,
             uploadedBy=current_user.userID
@@ -574,7 +576,7 @@ def add_case_file(
             detail="Failed to add case file"
         )
 
-
+# get case files with presigned download URLs
 @router.get("/{id}/files", response_model=CaseFilesPublic)
 def get_case_files(
     id: uuid.UUID,
@@ -590,7 +592,7 @@ def get_case_files(
 
         statement = select(CaseFile).where(CaseFile.caseId == id)
         results = db.exec(statement).all()
-        
+
         files_response = []
 
         for file in results:
@@ -617,6 +619,7 @@ def get_case_files(
         logger.exception(f"Error retrieving case files: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve case files")
 
+# delete case file (from both S3 and DB)
 @router.delete("/{case_id}/files/{file_id}")
 def delete_case_file(
     case_id: uuid.UUID,
