@@ -549,7 +549,6 @@ def add_case_file(
             fileKey=file.fileKey,
             fileName=file.fileName,
             fileType=file.fileType,
-            category=file.category,
             description=file.description,
             uploadedBy=current_user.userID
         )
@@ -563,7 +562,6 @@ def add_case_file(
             "caseId": str(case_file.caseId),
             "fileName": case_file.fileName,
             "fileType": case_file.fileType,
-            "category": case_file.category,
             "uploadedAt": case_file.uploadedAt
         }
 
@@ -602,7 +600,6 @@ def get_case_files(
                 "id": str(file.id),
                 "fileName": file.fileName,
                 "fileType": file.fileType,
-                "category": file.category,
                 "uploadedAt": file.uploadedAt,
                 "url": presigned["url"],
                 "urlExpiresAt": presigned["expiresAt"],

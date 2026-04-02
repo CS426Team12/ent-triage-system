@@ -201,16 +201,14 @@ class CaseFile(SQLModel, table=True):
     fileType: Optional[str] = None
 
     uploadedBy: Optional[uuid.UUID] = Field(default=None, foreign_key="ent.User.userID")
-    uploadedAt: datetime = Field(default_factory=datetime.utcnow)
+    uploadedAt: datetime = Field(default_factory=datetime.now)
 
     description: Optional[str] = None
-    category: Optional[str] = None
 
 class CaseFilePublic(SQLModel):
     id: uuid.UUID
     fileName: str
     fileType: Optional[str]
-    category: Optional[str]
     uploadedAt: datetime
 
     url: str 
@@ -224,7 +222,6 @@ class CaseFileCreate(SQLModel):
     fileName: str
     fileKey: str
     fileType: Optional[str] = None
-    category: Optional[str] = None
     description: Optional[str] = None
     
 # ============= AI FEEDBACK MODELS =============

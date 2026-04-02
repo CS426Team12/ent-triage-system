@@ -100,7 +100,6 @@ CREATE TABLE "TriageCaseFile" (
     "uploadedAt" TIMESTAMP DEFAULT NOW(),
     
     "description" TEXT, 
-    "category" TEXT 
 );
 
 -- ============================================================
