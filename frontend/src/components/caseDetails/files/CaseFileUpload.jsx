@@ -4,6 +4,7 @@ import { triageCaseService } from "../../../api/triageCaseService";
 import { Paper, Typography, LinearProgress, Box } from "@mui/material";
 import axios from "axios";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
+import { toast } from "../../../utils/toast";
 
 export const CaseFileUpload = ({ caseId, onUploadComplete }) => {
   const [uploading, setUploading] = useState(false);
@@ -15,7 +16,6 @@ export const CaseFileUpload = ({ caseId, onUploadComplete }) => {
 
     try {
       setUploading(true);
-
       // Get presigned URL and file key from backend
       const { presigned_url, file_key } = await triageCaseService.getUploadUrl(
         caseId,
@@ -43,6 +43,7 @@ export const CaseFileUpload = ({ caseId, onUploadComplete }) => {
       // Trigger parent to refresh file list
       if (onUploadComplete) onUploadComplete();
     } catch (err) {
+      toast.error("Failed to upload file, please try again.");
       console.error("Upload failed", err);
     } finally {
       setUploading(false);
@@ -66,7 +67,7 @@ export const CaseFileUpload = ({ caseId, onUploadComplete }) => {
         backgroundColor: isDragActive ? "action.hover" : "transparent",
       }}>
       <input {...getInputProps()} />
-      <FileUploadIcon sx={{mb: 1, fontSize: 50 }} color="primary" />
+      <FileUploadIcon sx={{ mb: 1, fontSize: 50 }} color="primary" />
       <Typography variant="subtitle1">
         {isDragActive ? "Drop file here" : "Drag & drop or click to upload"}
       </Typography>
