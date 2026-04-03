@@ -1,4 +1,6 @@
+import re
 import uuid
+from uuid import uuid4
 import logging
 from typing import Any
 from datetime import datetime
@@ -18,10 +20,15 @@ from app.models import (
     Message,
     User,
     Patient,
+    CaseFile,
+    CaseFileCreate,
+    CaseFilesPublic,
 )
 from app.utils.changelog import log_changes
+from app.utils.s3_helpers import generate_presigned_upload_url, generate_presigned_download_url
 from app.core.audit_middleware import get_audit_meta
 from app.core.audit import AuditService
+from app.core.s3 import s3_client, BUCKET_NAME
 
 
 logger = logging.getLogger(__name__)
@@ -481,3 +488,180 @@ def get_case_changelog(
     except Exception as e:
         logger.exception(f"GET /triage-cases/{id}/changelog - Error: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve case changelog")
+
+# ================= CASE FILES ENDPOINTS =================
+# get upload url
+@router.get("/{id}/upload-url")
+def generate_upload_url(
+    id: uuid.UUID,
+    file_name: str, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    request: Request = None
+):
+    logger.info(f"GET /triage-cases/{id}/upload-url - user: {current_user.email}, file: {file_name}")
+
+    try:
+        case = db.get(TriageCase, id)
+        if not case:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Triage case not found")
+        
+        safe_file_name = re.sub(r"[^a-zA-Z0-9._-]", "_", file_name)
+        file_key = f"cases/{id}/{uuid4()}_{safe_file_name}"
+
+        presigned_url = generate_presigned_upload_url(file_key)
+        return {
+            "presigned_url": presigned_url,
+            "file_key": file_key
+        }
+    except Exception as e:
+        logger.exception(f"Error generating upload URL: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate upload URL")
+
+# add case file record to DB after successful upload to S3
+@router.post("/{id}/files")
+def add_case_file(
+    id: uuid.UUID,
+    file: CaseFileCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    request: Request = None
+):
+    logger.info(
+        f"POST /triage-cases/{id}/files - user: {current_user.email}, file_key: {file.fileKey}"
+    )
+
+    try:
+        case = db.get(TriageCase, id)
+        if not case:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Triage case not found"
+            )
+        if not file.fileKey.startswith(f"cases/{id}/"):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid file key for this case"
+            )
+
+        case_file = CaseFile(
+            caseId=id, 
+            fileKey=file.fileKey,
+            fileName=file.fileName,
+            fileType=file.fileType,
+            description=file.description,
+            uploadedBy=current_user.userID
+        )
+
+        db.add(case_file)
+        db.commit()
+        db.refresh(case_file)
+
+        return {
+            "id": str(case_file.id),
+            "caseId": str(case_file.caseId),
+            "fileName": case_file.fileName,
+            "fileType": case_file.fileType,
+            "uploadedAt": case_file.uploadedAt
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error adding case file: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to add case file"
+        )
+
+# get case files with presigned download URLs
+@router.get("/{id}/files", response_model=CaseFilesPublic)
+def get_case_files(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    logger.info(f"GET /triage-cases/{id}/files - user: {current_user.email}")
+
+    try:
+        case = db.get(TriageCase, id)
+        if not case:
+            raise HTTPException(status_code=404, detail="Triage case not found")
+
+        statement = select(CaseFile).where(CaseFile.caseId == id)
+        results = db.exec(statement).all()
+
+        files_response = []
+
+        for file in results:
+            presigned = generate_presigned_download_url(file.fileKey)
+
+            files_response.append({
+                "id": str(file.id),
+                "fileName": file.fileName,
+                "fileType": file.fileType,
+                "uploadedAt": file.uploadedAt,
+                "url": presigned["url"],
+                "urlExpiresAt": presigned["expiresAt"],
+            })
+
+        return {
+            "files": files_response,
+            "count": len(results)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error retrieving case files: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve case files")
+
+# delete case file (from both S3 and DB)
+@router.delete("/{case_id}/files/{file_id}")
+def delete_case_file(
+    case_id: uuid.UUID,
+    file_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    request: Request = None
+):
+    logger.info(
+        f"DELETE /triage-cases/{case_id}/files/{file_id} - user: {current_user.email}"
+    )
+
+    try:
+        case = db.get(TriageCase, case_id)
+        if not case:
+            raise HTTPException(status_code=404, detail="Triage case not found")
+
+        file = db.get(CaseFile, file_id)
+        if not file or file.caseId != case_id:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        try:
+            s3_client.delete_object(
+                Bucket=BUCKET_NAME,
+                Key=file.fileKey
+            )
+        except Exception as e:
+            logger.exception(f"S3 deletion failed: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to delete file from storage"
+            )
+
+        db.delete(file)
+        db.commit()
+
+        return {"message": "File deleted successfully"}
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.exception(f"Error deleting file: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete file"
+        )

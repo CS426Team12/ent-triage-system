@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     GCAL_CLIENT_EMAIL: str
     GCAL_PRIVATE_KEY: str
     
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_REGION: str
+    S3_BUCKET_NAME: str
+
     @property
     def SQLALCHEMY_DATABASE_URL(self) -> str:
         return f"postgresql://{self.DB_USER}:{self.DB_PW}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

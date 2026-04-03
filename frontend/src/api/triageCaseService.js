@@ -30,6 +30,26 @@ class TriageCaseService {
     const res = await apiClient.get(`/triage-cases/${id}/changelog`);
     return res.data;
   }
+
+  async getUploadUrl(caseId, fileName) {
+    const res = await apiClient.get(`/triage-cases/${caseId}/upload-url`, {
+      params: { file_name: fileName },
+    });
+    return res.data;
+  }
+  async addCaseFile(caseId, fileData) {
+    const res = await apiClient.post(`/triage-cases/${caseId}/files`, fileData);
+    return res.data;
+  }
+  async getCaseFiles(caseId) {
+    const res = await apiClient.get(`/triage-cases/${caseId}/files`);
+    return res.data;
+  }
+  async deleteCaseFile(caseId, fileId) {
+    const res = await apiClient.delete(`/triage-cases/${caseId}/files/${fileId}`);
+    return res.data;
+  }
+
 }
 
 export const triageCaseService = new TriageCaseService();
