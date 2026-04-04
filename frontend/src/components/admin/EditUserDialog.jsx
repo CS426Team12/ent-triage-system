@@ -57,7 +57,7 @@ export default function EditUserDialog({
         .required("Email is required"),
       role: Yup.string().required("Role is required"),
       isAdmin: Yup.boolean().when("role", {
-        is: (role) => ADMIN_PERMISSION_ROLES.includes(role),
+        is: "admin",
         then: (schema) =>
           schema.oneOf([true], "Role requires admin permissions to be enabled"),
         otherwise: (schema) => schema,
@@ -74,7 +74,7 @@ export default function EditUserDialog({
 
   const handleRoleChange = (e) => {
     formik.setFieldValue("role", e.target.value);
-    if (ADMIN_PERMISSION_ROLES.includes(e.target.value)) {
+    if (e.target.value === "admin") {
       formik.setFieldValue("isAdmin", true);
     }
   };
@@ -120,7 +120,7 @@ export default function EditUserDialog({
     return 1;
   };
 
-  const canDeactivateUser = (selectedUser) => {
+  const isUserRankHigher = (selectedUser) => {
     if (!selectedUser?.isActive) return false;
     if (selectedUser?.userID === user?.userID) return false;
     return getRoleRank(user) > getRoleRank(selectedUser);
@@ -181,8 +181,7 @@ export default function EditUserDialog({
                   disabled:
                     isCurrentUser ||
                     submitting ||
-                    (userData?.role === "superuser" &&
-                      user?.role !== "superuser"),
+                    !isUserRankHigher(userData),
                 }}
               />
             </Grid>
@@ -199,7 +198,7 @@ export default function EditUserDialog({
                     }
                     disabled={
                       !editMode ||
-                      ADMIN_PERMISSION_ROLES.includes(formik.values.role) ||
+                      !isUserRankHigher(userData) ||
                       isCurrentUser ||
                       submitting
                     }
@@ -258,7 +257,7 @@ export default function EditUserDialog({
                   Calendar Color
                 </Button>
               )}
-            {editMode && canDeactivateUser(userData) && (
+            {editMode && isUserRankHigher(userData) && (
               <Button
                 onClick={handleDeactivateUser}
                 variant="contained"

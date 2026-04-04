@@ -77,7 +77,7 @@ export default function RenderSelectField({
         }
         {...overrides}>
         {options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
+          <MenuItem key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </MenuItem>
         ))}

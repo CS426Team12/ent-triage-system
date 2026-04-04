@@ -33,6 +33,13 @@ def build_user_public(user: User, db: Session) -> UserPublic:
         deactivatedByEmail=deactivated_by_email,
     )
 
+def get_role_rank(u: User) -> int:
+    if u.role == "superuser":
+        return 3
+    if u.role == "admin" or u.isAdmin:
+        return 2
+    return 1
+
 @router.get("/", response_model=UsersList)
 def list_users(
 	limit: int = 100,
@@ -103,8 +110,12 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user
 	if existing:
 		raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with this email already exists")
 
-	if payload.role.lower() == "admin" and not payload.isAdmin:
-		raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Users with role 'admin' must have admin permissions enabled")
+	if payload.role.lower() == "admin":
+		if not payload.isAdmin:
+			raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="User must have admin permissions enabled")
+
+	if get_role_rank(payload) >= get_role_rank(current_user):
+		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create a user with this role")
 
 	# TODO: hash or generate password, send invitation email
 	new_user = User(
@@ -146,13 +157,6 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user
 	
 	return new_user
 
-def get_role_rank(u: User) -> int:
-    if u.role == "superuser":
-        return 3
-    if u.role == "admin" or u.isAdmin:
-        return 2
-    return 1
-
 @router.patch("/{user_id}", response_model=UserPublic)
 def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user), request: Request = None):
 	if not current_user.isAdmin:
@@ -161,13 +165,19 @@ def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db)
 	user = db.get(User, user_id)
 	if not user:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+	
+  # Can't update role/permissions of someone ranked equal or above you
+	if payload.role is not None or payload.isAdmin is not None:
+		if get_role_rank(current_user) <= get_role_rank(user):
+			raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to modify this user's role or permissions")
 
-	if payload.role and payload.role.lower() == "admin" and not payload.isAdmin:
-		raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Users with role 'admin' must have admin permissions enabled")
+	if payload.role and payload.role.lower() == "admin":
+		if not payload.isAdmin:
+			raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="User must have admin permissions enabled")
 
 	if payload.isActive is False and user.isActive:
-			if get_role_rank(current_user) <= get_role_rank(user):
-				raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to deactivate this user")
+		if get_role_rank(current_user) <= get_role_rank(user):
+			raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to deactivate this user")
 
 	modified_fields = []
 	if payload.firstName is not None:
