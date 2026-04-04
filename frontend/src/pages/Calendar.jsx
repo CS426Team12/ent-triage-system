@@ -24,6 +24,7 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { CaseDetailsDialog } from "../components/caseDetails/CaseDetailsDialog";
 import { triageCaseService } from "../api/triageCaseService";
+import { APP_COLORS } from "../theme";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -244,7 +245,7 @@ export const Calendar = () => {
                     slotMinTime="08:00:00"
                     slotMaxTime="17:00:00"
                     nowIndicator
-                    eventTextColor="#ffffff"
+                    eventTextColor={APP_COLORS.text.contrastText}
                     eventClick={handleEventClick}
                   />
                 )}
