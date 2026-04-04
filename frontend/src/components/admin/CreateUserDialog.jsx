@@ -15,10 +15,20 @@ import {
 } from "@mui/material";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
-import { USER_ROLE_OPTIONS } from "../../utils/consts";
+import { USER_ROLE_OPTIONS, ADMIN_PERMISSION_ROLES } from "../../utils/consts";
+import { useAuth } from "../../context/AuthContext";
 
 export default function CreateUserDialog({ open, onClose, onSave }) {
   const [submitting, setSubmitting] = React.useState(false);
+  const { user } = useAuth();
+
+  const roleOptions = React.useMemo(() => {
+    if (user?.role === "superuser") {
+      return USER_ROLE_OPTIONS;
+    } else {
+      return USER_ROLE_OPTIONS.filter((option) => option.value !== "superuser");
+    }
+  }, [user]);
 
   const formik = useFormik({
     validateOnMount: true,
@@ -37,7 +47,7 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
         .required("Email is required"),
       role: Yup.string().required("Role is required"),
       isAdmin: Yup.boolean().when("role", {
-        is: "admin",
+        is: (role) => ADMIN_PERMISSION_ROLES.includes(role),
         then: (schema) => schema.oneOf([true], "Admin role requires admin permissions to be enabled"),
         otherwise: (schema) => schema,
       }),
@@ -57,7 +67,7 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
 
   const handleRoleChange = (e) => {
     formik.setFieldValue("role", e.target.value);
-    if (e.target.value === "admin") {
+    if (ADMIN_PERMISSION_ROLES.includes(e.target.value)) {
       formik.setFieldValue("isAdmin", true);
     }
   };
@@ -97,7 +107,7 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
             formik={formik}
             fieldName="role"
             label="Role *"
-            options={USER_ROLE_OPTIONS}
+            options={roleOptions}
             overrides={{ onChange: handleRoleChange, disabled: submitting }}
           />
           <Grid size={12}>
@@ -111,7 +121,7 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
                   onChange={(e) =>
                     formik.setFieldValue("isAdmin", e.target.checked)
                   }
-                  disabled={formik.values.role === "admin" || submitting}
+                  disabled={ADMIN_PERMISSION_ROLES.includes(formik.values.role) || submitting}
                 />
               }
             />

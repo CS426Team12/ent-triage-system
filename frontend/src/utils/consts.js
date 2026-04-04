@@ -56,16 +56,19 @@ export const RETURNING_PATIENT_OPTIONS = [
 ];
 
 export const NAV_PAGES = [
-  { label: "Dashboard", path: "/dashboard", roles: ["physician", "staff"], icon: Assessment },
-  { label: "Admin Portal", path: "/admin", roles: ["admin"], icon: SupervisorAccount, hasAdminPermission: true },
-  { label: "Calendar", path: "/calendar", roles: ["physician", "staff"], icon: CalendarMonth },
+  { label: "Dashboard", path: "/dashboard", roles: ["physician", "staff", "superuser"], icon: Assessment },
+  { label: "Admin Portal", path: "/admin", roles: ["admin", "superuser"], icon: SupervisorAccount, hasAdminPermission: true },
+  { label: "Calendar", path: "/calendar", roles: ["physician", "staff", "superuser"], icon: CalendarMonth },
 ];
 
 export const USER_ROLE_OPTIONS = [
   { value: "physician", label: "Physician" },
   { value: "staff", label: "Staff" },
   { value: "admin", label: "Admin" },
+  { value: "superuser", label: "Superuser" },
 ];
+
+export const ADMIN_PERMISSION_ROLES = ["admin", "superuser"];
 
 export const AI_REASONING_FLAG_LABELS = {
   SYMPTOM: "Symptom(s)",

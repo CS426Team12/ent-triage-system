@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 import logging
 from uuid import UUID
@@ -20,6 +21,17 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 SET_PASSWORD_URL = str(settings.SET_PASSWORD_URL) 
 
+def build_user_public(user: User, db: Session) -> UserPublic:
+    deactivated_by_email = None
+    if user.deactivatedBy:
+        deactivator = db.get(User, user.deactivatedBy)
+        if deactivator:
+            deactivated_by_email = deactivator.email
+
+    return UserPublic(
+        **user.model_dump(),
+        deactivatedByEmail=deactivated_by_email,
+    )
 
 @router.get("/", response_model=UsersList)
 def list_users(
@@ -32,6 +44,7 @@ def list_users(
 
 	statement = select(User).offset(offset).limit(limit)
 	results = db.exec(statement).all()
+	users_public = [build_user_public(user, db) for user in results]
 
 	try:
 		audit_meta = get_audit_meta(request) if request is not None else {"ip": None}
@@ -50,7 +63,7 @@ def list_users(
 	except Exception:
 		logger.exception("Failed to write audit log for listing users")
 
-	return UsersList(data=results, count=len(results))
+	return UsersList(data=users_public, count=len(users_public))
 
 
 @router.get("/{user_id}", response_model=UserPublic)
@@ -78,7 +91,7 @@ def get_user(user_id: str, db: Session = Depends(get_db), current_user: User = D
 	except Exception:
 		logger.exception("Failed to write audit log for user creation")
 	
-	return user
+	return build_user_public(user, db)
 
 
 @router.post("/", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
@@ -162,6 +175,12 @@ def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db)
 	if payload.isAdmin is not None:
 		user.isAdmin = payload.isAdmin
 		modified_fields.append("isAdmin")
+	if payload.isActive is not None:
+		user.isActive = payload.isActive
+		modified_fields.append("isActive")
+		user.deactivatedAt = None if payload.isActive else datetime.now()
+		user.deactivatedBy = None if payload.isActive else current_user.userID
+		modified_fields.extend(["deactivatedAt", "deactivatedBy"])
 
 	db.add(user)
 	db.commit()
