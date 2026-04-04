@@ -40,14 +40,6 @@ export default function EditUserDialog({
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
 
-  const roleOptions = useMemo(() => {
-    if (user?.role === "superuser") {
-      return USER_ROLE_OPTIONS;
-    } else {
-      return USER_ROLE_OPTIONS.filter((option) => option.value !== "superuser");
-    }
-  }, [user]);
-
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -122,6 +114,18 @@ export default function EditUserDialog({
     setSubmitting(false);
   };
 
+  const getRoleRank = (u) => {
+    if (u?.role === "superuser") return 3;
+    if (u?.role === "admin" || u?.isAdmin) return 2;
+    return 1;
+  };
+
+  const canDeactivateUser = (selectedUser) => {
+    if (!selectedUser?.isActive) return false;
+    if (selectedUser?.userID === user?.userID) return false;
+    return getRoleRank(user) > getRoleRank(selectedUser);
+  };
+
   return (
     <>
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -152,21 +156,9 @@ export default function EditUserDialog({
               />
             </Grid>
             <Grid size={12}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-                  Email
-                </Typography>
-                {!userData.isActive && editMode && (
-                  <Typography
-                    variant="subtitle2"
-                    color="textSecondary"
-                    sx={{ fontWeight: 500 }}
-                    gutterBottom
-                  >
-                    User's account is deactivated or has not been activated yet.
-                  </Typography>
-                )}
-              </Stack>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                Email
+              </Typography>
               <RenderTextField
                 editMode={editMode}
                 formik={formik}
@@ -183,10 +175,14 @@ export default function EditUserDialog({
                 editMode={editMode}
                 formik={formik}
                 fieldName="role"
-                options={roleOptions}
+                options={USER_ROLE_OPTIONS}
                 overrides={{
                   onChange: handleRoleChange,
-                  disabled: isCurrentUser || submitting,
+                  disabled:
+                    isCurrentUser ||
+                    submitting ||
+                    (userData?.role === "superuser" &&
+                      user?.role !== "superuser"),
                 }}
               />
             </Grid>
@@ -211,14 +207,21 @@ export default function EditUserDialog({
                 }
               />
             </Grid>
-            {userData?.deactivatedAt && userData?.deactivatedByEmail && (
-              <Grid size={12}>
-                <Typography variant="subtitle2" gutterBottom>
-                  User was deactivated by {userData.deactivatedByEmail} on {" "}
-                  {dayjs(userData.deactivatedAt).format("MM/DD/YYYY, h:mm A")}
-                </Typography>
-              </Grid>
-            )}
+            {!userData?.isActive &&
+              (userData?.deactivatedAt && userData?.deactivatedByEmail ? (
+                <Grid size={12}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    User was deactivated by {userData.deactivatedByEmail} on{" "}
+                    {dayjs(userData.deactivatedAt).format("MM/DD/YYYY, h:mm A")}
+                  </Typography>
+                </Grid>
+              ) : (
+                <Grid size={12}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    User has not been activated yet.
+                  </Typography>
+                </Grid>
+              ))}
           </Grid>
         </DialogContent>
         <DialogActions sx={{ justifyContent: "space-between" }}>
@@ -255,18 +258,15 @@ export default function EditUserDialog({
                   Calendar Color
                 </Button>
               )}
-            {editMode &&
-              !isCurrentUser &&
-              user?.role === "superuser" &&
-              userData?.isActive && (
-                <Button
-                  onClick={handleDeactivateUser}
-                  variant="contained"
-                  disabled={submitting}
-                >
-                  Deactivate User
-                </Button>
-              )}
+            {editMode && canDeactivateUser(userData) && (
+              <Button
+                onClick={handleDeactivateUser}
+                variant="contained"
+                disabled={submitting}
+              >
+                Deactivate User
+              </Button>
+            )}
           </Grid>
           <Grid>
             {editMode ? (
@@ -282,9 +282,11 @@ export default function EditUserDialog({
               </>
             ) : (
               <>
-                <Button onClick={() => setEditMode(true)} variant="contained">
-                  Edit
-                </Button>
+                {userData?.isActive && (
+                  <Button onClick={() => setEditMode(true)} variant="contained">
+                    Edit
+                  </Button>
+                )}
                 <Button onClick={handleClose}>Close</Button>
               </>
             )}

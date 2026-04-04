@@ -146,6 +146,12 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db), current_user
 	
 	return new_user
 
+def get_role_rank(u: User) -> int:
+    if u.role == "superuser":
+        return 3
+    if u.role == "admin" or u.isAdmin:
+        return 2
+    return 1
 
 @router.patch("/{user_id}", response_model=UserPublic)
 def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user), request: Request = None):
@@ -158,7 +164,11 @@ def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db)
 
 	if payload.role and payload.role.lower() == "admin" and not payload.isAdmin:
 		raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Users with role 'admin' must have admin permissions enabled")
-	
+
+	if payload.isActive is False and user.isActive:
+			if get_role_rank(current_user) <= get_role_rank(user):
+				raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to deactivate this user")
+
 	modified_fields = []
 	if payload.firstName is not None:
 		user.firstName = payload.firstName
@@ -204,7 +214,7 @@ def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db)
 		except Exception:
 			logger.exception("Failed to write audit log for user update")
 	
-	return user
+	return build_user_public(user, db)
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
