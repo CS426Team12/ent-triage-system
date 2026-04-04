@@ -22,6 +22,8 @@ import { toast } from "../utils/toast";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { CaseDetailsDialog } from "../components/caseDetails/CaseDetailsDialog";
+import { triageCaseService } from "../api/triageCaseService";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -39,6 +41,8 @@ export const Calendar = () => {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("WEEK");
   const [selectedPhysician, setSelectedPhysician] = useState(null);
+  const [selectedCase, setSelectedCase] = useState(null);
+  const [caseDialogOpen, setCaseDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -55,7 +59,7 @@ export const Calendar = () => {
         physicians: usersRes.data.filter((u) => u.role === "physician"),
         appointments: apptRes,
       });
-    } catch(err) {
+    } catch (err) {
       toast.error("Could not load calendar data");
       console.error("Error fetching calendar data:", err);
     } finally {
@@ -81,11 +85,25 @@ export const Calendar = () => {
       end: dayjs(a.scheduledEnd).tz(CLINIC_TZ).format("YYYY-MM-DDTHH:mm:ss"),
       backgroundColor: physicianColorMap[a.physicianID] || "#0b8043",
       borderColor: physicianColorMap[a.physicianID] || "#0b8043",
+      extendedProps: { caseID: a.caseID },
     }));
   }, [data.appointments, selectedPhysician, physicianColorMap]);
 
   const fcView =
     VIEW_MODES.find((m) => m.value === viewMode)?.fcView || "timeGridWeek";
+
+  const handleEventClick = async ({ event }) => {
+    const caseID = event.extendedProps.caseID;
+    if (!caseID) return;
+    try {
+      const caseData = await triageCaseService.getCaseById(caseID);
+      setSelectedCase(caseData);
+      setCaseDialogOpen(true);
+    } catch (err) {
+      toast.error("Could not load case details");
+      console.error("Error loading case from calendar event:", err);
+    }
+  };
 
   return (
     <>
@@ -227,6 +245,7 @@ export const Calendar = () => {
                     slotMaxTime="17:00:00"
                     nowIndicator
                     eventTextColor="#ffffff"
+                    eventClick={handleEventClick}
                   />
                 )}
               </Box>
@@ -234,6 +253,21 @@ export const Calendar = () => {
           </Grid>
         </Grid>
       </Box>
+      {selectedCase && (
+        <CaseDetailsDialog
+          open={caseDialogOpen}
+          onClose={() => {
+            setCaseDialogOpen(false);
+            setSelectedCase(null);
+          }}
+          caseData={selectedCase}
+          onUpdated={() => {
+            fetchData();
+            setCaseDialogOpen(false);
+            setSelectedCase(null);
+          }}
+        />
+      )}
     </>
   );
 };
