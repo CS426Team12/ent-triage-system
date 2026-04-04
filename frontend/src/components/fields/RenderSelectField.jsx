@@ -7,7 +7,7 @@ import {
   MenuItem,
   Chip,
 } from "@mui/material";
-import theme, { URGENCY_COLORS } from "../../theme";
+import theme, { URGENCY_COLORS, APP_COLORS } from "../../theme";
 
 export default function RenderSelectField({
   editMode,
@@ -33,9 +33,9 @@ export default function RenderSelectField({
                 ?.label || "---"
             }
             sx={{
-              backgroundColor: URGENCY_COLORS[formik.values[fieldName]],
+              backgroundColor: URGENCY_COLORS[formik.values[fieldName]] ?? APP_COLORS.neutral[500],
               color: theme.palette.getContrastText(
-                URGENCY_COLORS[formik.values[fieldName]],
+                URGENCY_COLORS[formik.values[fieldName]] ?? APP_COLORS.neutral[500],
               ),
               fontWeight: 500,
             }}
@@ -66,8 +66,8 @@ export default function RenderSelectField({
             <Chip
               label={options.find((o) => o.value === selected)?.label || "---"}
               sx={{
-                backgroundColor: URGENCY_COLORS[selected],
-                color: theme.palette.getContrastText(URGENCY_COLORS[selected]),
+                backgroundColor: URGENCY_COLORS[selected] ?? APP_COLORS.neutral[500],
+                color: theme.palette.getContrastText(URGENCY_COLORS[selected] ?? APP_COLORS.neutral[500]),
                 fontWeight: 500,
               }}
             />
