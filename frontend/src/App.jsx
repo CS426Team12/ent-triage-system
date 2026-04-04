@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import AdminPortal from "./pages/AdminPortal.jsx";
 import SetPassword from "./pages/SetPassword.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
+import Analytics from "./pages/Analytics.jsx";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -64,6 +65,14 @@ function App() {
                 element={
                   <ProtectedRoute requireRoles={["physician", "staff"]}>
                     <Calendar />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <Analytics />
                   </ProtectedRoute>
                 }
               />
