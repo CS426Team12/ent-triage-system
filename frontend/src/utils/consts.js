@@ -65,7 +65,7 @@ export const USER_ROLE_OPTIONS = [
   { value: "physician", label: "Physician" },
   { value: "staff", label: "Staff" },
   { value: "admin", label: "Admin" },
-  { value: "superuser", label: "Superuser" },
+  { value: "superuser", label: "Superuser", disabled: true },
 ];
 
 export const ADMIN_PERMISSION_ROLES = ["admin", "superuser"];
