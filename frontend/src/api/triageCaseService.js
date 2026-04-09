@@ -7,7 +7,7 @@ class TriageCaseService {
   }
 
   async getCaseById(id) {
-    const res = apiClient.get(`/triage-cases/${id}`);
+    const res = await apiClient.get(`/triage-cases/${id}`);
     return res.data;
   }
 
