@@ -131,7 +131,7 @@ export default function EditUserDialog({
 
   const targetRank = getUserRank(userData);
   const canManageUser = !isCurrentUser && userData?.isActive && actorRank > targetRank;
-  const canReactivate = isSuperuser && !userData?.isActive && !!userData?.deactivatedAt;
+  const canReactivate = !isCurrentUser && !userData?.isActive && !!userData?.deactivatedAt && actorRank > targetRank;
 
   return (
     <>

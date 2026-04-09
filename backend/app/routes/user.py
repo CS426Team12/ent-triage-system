@@ -175,7 +175,7 @@ def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db)
 	if actor_rank <= target_rank:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to modify this user")
 
-	# only superuser can grant or revoke isAdmin
+	# Only superuser can grant or revoke isAdmin
 	if payload.isAdmin is not None and actor_rank < 3:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to modify admin permissions")
 
@@ -189,9 +189,9 @@ def update_user(user_id: str, payload: UserUpdate, db: Session = Depends(get_db)
 	if payload.role and payload.role.lower() == "admin" and payload.isAdmin is False:
 		raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Admin role requires admin permissions")
 
-	# only superuser can reactivate users
-	if payload.isActive is True and actor_rank < 3:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to reactivate users")
+	# reactivation requires strictly higher rank than the target (same rule as deactivation)
+	if payload.isActive is True and actor_rank <= target_rank:
+		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to reactivate this user")
 
 	modified_fields = []
 	if payload.firstName is not None:
