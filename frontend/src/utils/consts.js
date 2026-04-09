@@ -96,8 +96,6 @@ export const USER_ROLE_OPTIONS = [
   { value: "superuser", label: "Superuser", disabled: true },
 ];
 
-export const ADMIN_PERMISSION_ROLES = ["admin", "superuser"];
-
 export const getUserRank = (user) => {
   if (user?.role === "superuser") return 3;
   if (user?.role === "admin" || user?.isAdmin) return 2;
