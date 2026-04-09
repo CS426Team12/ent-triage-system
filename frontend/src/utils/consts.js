@@ -25,8 +25,6 @@ export const FIELD_LABELS = {
   status: "Status",
 };
 
-import APP_COLORS from "../theme";
-
 // this should reflect how these enums are stored in db
 export const URGENCY_VALUES = {
   ROUTINE: "routine",
@@ -99,6 +97,12 @@ export const USER_ROLE_OPTIONS = [
 ];
 
 export const ADMIN_PERMISSION_ROLES = ["admin", "superuser"];
+
+export const getUserRank = (user) => {
+  if (user?.role === "superuser") return 3;
+  if (user?.role === "admin" || user?.isAdmin) return 2;
+  return 1;
+};
 
 export const AI_REASONING_FLAG_LABELS = {
   SYMPTOM: "Symptom(s)",

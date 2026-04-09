@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
@@ -13,12 +13,11 @@ import {
   Switch,
   FormControlLabel,
   Box,
-  Stack,
 } from "@mui/material";
 import AlertDialog from "../AlertDialog";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
-import { USER_ROLE_OPTIONS, ADMIN_PERMISSION_ROLES } from "../../utils/consts";
+import { USER_ROLE_OPTIONS, getUserRank } from "../../utils/consts";
 import { getChangedFields } from "../../utils/utils";
 import { useAuth } from "../../context/AuthContext";
 import { CalendarColorPicker } from "../CalendarColorPicker";
@@ -39,6 +38,18 @@ export default function EditUserDialog({
   const isCurrentUser = user?.userID === userData?.userID;
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [reactivateDialogOpen, setReactivateDialogOpen] = useState(false);
+
+  const actorRank = getUserRank(user);
+  const isSuperuser = actorRank >= 3;
+
+  // superuser is always included so the role displays correctly when viewing a superuser.
+  // admins (rank 2) can only assign rank 1 roles; superusers can assign rank 1 and 2.
+  const availableRoles = USER_ROLE_OPTIONS.map((opt) => {
+    if (opt.value === "superuser") return { ...opt, disabled: true };
+    if (opt.value === "admin") return { ...opt, disabled: !isSuperuser };
+    return opt;
+  });
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -88,7 +99,7 @@ export default function EditUserDialog({
     try {
       setSubmitting(true);
       await calendarManagementService.createPhysicianCalendar(userData?.userID);
-      onUpdated(); //refresh user grid after update
+      onUpdated();
       toast.success("Calendar created successfully.");
     } catch (error) {
       toast.error("Failed to create calendar. Please try again.");
@@ -100,12 +111,7 @@ export default function EditUserDialog({
     }
   };
 
-  const handleDeactivateUser = async () => {
-    setDeactivateDialogOpen(true);
-  };
-
   const handleConfirmDeactivate = async () => {
-    // toast messages are handled upstream in onSave
     setSubmitting(true);
     setDeactivateDialogOpen(false);
     await onSave({ isActive: false });
@@ -114,17 +120,18 @@ export default function EditUserDialog({
     setSubmitting(false);
   };
 
-  const getRoleRank = (u) => {
-    if (u?.role === "superuser") return 3;
-    if (u?.role === "admin" || u?.isAdmin) return 2;
-    return 1;
+  const handleConfirmReactivate = async () => {
+    setSubmitting(true);
+    setReactivateDialogOpen(false);
+    await onSave({ isActive: true });
+    onUpdated();
+    handleClose();
+    setSubmitting(false);
   };
 
-  const isUserRankHigher = (selectedUser) => {
-    if (!selectedUser?.isActive) return false;
-    if (selectedUser?.userID === user?.userID) return false;
-    return getRoleRank(user) > getRoleRank(selectedUser);
-  };
+  const targetRank = getUserRank(userData);
+  const canManageUser = !isCurrentUser && userData?.isActive && actorRank > targetRank;
+  const canReactivate = isSuperuser && !userData?.isActive && !!userData?.deactivatedAt;
 
   return (
     <>
@@ -175,13 +182,10 @@ export default function EditUserDialog({
                 editMode={editMode}
                 formik={formik}
                 fieldName="role"
-                options={USER_ROLE_OPTIONS}
+                options={availableRoles}
                 overrides={{
                   onChange: handleRoleChange,
-                  disabled:
-                    isCurrentUser ||
-                    submitting ||
-                    !isUserRankHigher(userData),
+                  disabled: !canManageUser || submitting,
                 }}
               />
             </Grid>
@@ -198,8 +202,8 @@ export default function EditUserDialog({
                     }
                     disabled={
                       !editMode ||
-                      !isUserRankHigher(userData) ||
-                      isCurrentUser ||
+                      !canManageUser ||
+                      !isSuperuser ||
                       submitting
                     }
                   />
@@ -257,13 +261,22 @@ export default function EditUserDialog({
                   Calendar Color
                 </Button>
               )}
-            {editMode && isUserRankHigher(userData) && (
+            {editMode && canManageUser && (
               <Button
-                onClick={handleDeactivateUser}
+                onClick={() => setDeactivateDialogOpen(true)}
                 variant="contained"
                 disabled={submitting}
               >
                 Deactivate User
+              </Button>
+            )}
+            {canReactivate && !editMode && (
+              <Button
+                onClick={() => setReactivateDialogOpen(true)}
+                variant="contained"
+                disabled={submitting}
+              >
+                Reactivate User
               </Button>
             )}
           </Grid>
@@ -281,7 +294,7 @@ export default function EditUserDialog({
               </>
             ) : (
               <>
-                {userData?.isActive && (
+                {userData?.isActive && canManageUser && (
                   <Button onClick={() => setEditMode(true)} variant="contained">
                     Edit
                   </Button>
@@ -304,6 +317,13 @@ export default function EditUserDialog({
         description="Are you sure you want to deactivate this user?"
         onClose={() => setDeactivateDialogOpen(false)}
         onConfirm={handleConfirmDeactivate}
+      />
+      <AlertDialog
+        open={reactivateDialogOpen}
+        title="Confirm User Reactivation"
+        description="Are you sure you want to reactivate this user?"
+        onClose={() => setReactivateDialogOpen(false)}
+        onConfirm={handleConfirmReactivate}
       />
     </>
   );
