@@ -47,7 +47,7 @@ function App() {
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute requireRoles={["physician", "staff"]}>
+                  <ProtectedRoute requireRoles={["physician", "staff", "superuser"]}>
                     <Dashboard />
                   </ProtectedRoute>
                 }
@@ -63,7 +63,7 @@ function App() {
               <Route
                 path="/calendar"
                 element={
-                  <ProtectedRoute requireRoles={["physician", "staff"]}>
+                  <ProtectedRoute requireRoles={["physician", "staff", "superuser"]}>
                     <Calendar />
                   </ProtectedRoute>
                 }

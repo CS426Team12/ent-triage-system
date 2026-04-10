@@ -11,15 +11,18 @@ import {
   Typography,
   Divider,
   Box,
-  Stack,
 } from "@mui/material";
+import AlertDialog from "../AlertDialog";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
-import { USER_ROLE_OPTIONS } from "../../utils/consts";
+import { USER_ROLE_OPTIONS, getUserRank } from "../../utils/consts";
 import { getChangedFields } from "../../utils/utils";
 import { useAuth } from "../../context/AuthContext";
 import { CalendarColorPicker } from "../CalendarColorPicker";
 import CalendarSetupDialog from "./CalendarSetupDialog";
+import { toast } from "../../utils/toast";
+import { calendarManagementService } from "../../api/calendarService";
+import dayjs from "dayjs";
 
 export default function EditUserDialog({
   open,
@@ -34,6 +37,19 @@ export default function EditUserDialog({
   const isCurrentUser = user?.userID === userData?.userID;
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [calendarSetupOpen, setCalendarSetupOpen] = useState(false);
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [reactivateDialogOpen, setReactivateDialogOpen] = useState(false);
+
+  const actorRank = getUserRank(user);
+  const isSuperuser = actorRank >= 3;
+
+  // superuser is always included so the role displays correctly when viewing a superuser.
+  // admins (rank 2) can only assign rank 1 roles; superusers can assign rank 1 and 2.
+  const availableRoles = USER_ROLE_OPTIONS.map((opt) => {
+    if (opt.value === "superuser") return { ...opt, disabled: true };
+    if (opt.value === "admin") return { ...opt, disabled: !isSuperuser };
+    return opt;
+  });
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -54,10 +70,7 @@ export default function EditUserDialog({
       isAdmin: Yup.boolean().when("role", {
         is: "admin",
         then: (schema) =>
-          schema.oneOf(
-            [true],
-            "Admin role requires admin permissions to be enabled",
-          ),
+          schema.oneOf([true], "Role requires admin permissions to be enabled"),
         otherwise: (schema) => schema,
       }),
     }),
@@ -86,7 +99,7 @@ export default function EditUserDialog({
     try {
       setSubmitting(true);
       await calendarManagementService.createPhysicianCalendar(userData?.userID);
-      onUpdated(); //refresh user grid after update
+      onUpdated();
       toast.success("Calendar created successfully.");
     } catch (error) {
       toast.error("Failed to create calendar. Please try again.");
@@ -98,144 +111,228 @@ export default function EditUserDialog({
     }
   };
 
+  const handleConfirmDeactivate = async () => {
+    setSubmitting(true);
+    setDeactivateDialogOpen(false);
+    await onSave({ isActive: false });
+    onUpdated();
+    handleClose();
+    setSubmitting(false);
+  };
+
+  const handleConfirmReactivate = async () => {
+    setSubmitting(true);
+    setReactivateDialogOpen(false);
+    await onSave({ isActive: true });
+    onUpdated();
+    handleClose();
+    setSubmitting(false);
+  };
+
+  const targetRank = getUserRank(userData);
+  const canManageUser = !isCurrentUser && userData?.isActive && actorRank > targetRank;
+  const canReactivate = !isCurrentUser && !userData?.isActive && !!userData?.deactivatedAt && actorRank > targetRank;
+
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        <Typography sx={{ fontWeight: 600 }}>Edit User Details</Typography>
+    <>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle>
+        Edit User Details
       </DialogTitle>
-      <Divider />
-      <DialogContent>
-        <Grid container spacing={2}>
-          <Grid item size={6}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-              First Name
-            </Typography>
-            <RenderTextField
-              editMode={editMode}
-              formik={formik}
-              fieldName="firstName"
-              overrides={{ disabled: submitting }}
-            />
-          </Grid>
-          <Grid item size={6}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-              Last Name
-            </Typography>
-            <RenderTextField
-              editMode={editMode}
-              formik={formik}
-              fieldName="lastName"
-              overrides={{ disabled: submitting }}
-            />
-          </Grid>
-          <Grid item size={12}>
-            <Stack direction="row" alignItems="center" spacing={1}>
+        <Divider />
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid size={6}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                First Name
+              </Typography>
+              <RenderTextField
+                editMode={editMode}
+                formik={formik}
+                fieldName="firstName"
+                overrides={{ disabled: submitting }}
+              />
+            </Grid>
+            <Grid size={6}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                Last Name
+              </Typography>
+              <RenderTextField
+                editMode={editMode}
+                formik={formik}
+                fieldName="lastName"
+                overrides={{ disabled: submitting }}
+              />
+            </Grid>
+            <Grid size={12}>
               <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
                 Email
               </Typography>
-              {!userData.isActive && editMode && (
-                <Typography
-                  variant="subtitle2"
-                  color="textSecondary"
-                  sx={{ fontWeight: 500 }}
-                  gutterBottom
-                >
-                  User has not activated their account yet.
-                </Typography>
-              )}
-            </Stack>
-            <RenderTextField
-              editMode={editMode}
-              formik={formik}
-              fieldName="email"
-              type="email"
-              overrides={{ disabled: !userData.isActive || submitting }}
-            />
-          </Grid>
-          <Grid item size={12}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-              Role
-            </Typography>
-            <RenderSelectField
-              editMode={editMode}
-              formik={formik}
-              fieldName="role"
-              options={USER_ROLE_OPTIONS}
-              overrides={{ disabled: isCurrentUser || submitting }}
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions sx={{ justifyContent: "space-between" }}>
-        <Grid sx={{ display: "flex", gap: 1 }}>
-          {userData?.role === "physician" &&
-            !userData?.calendarID &&
-            userData?.isActive &&
-            editMode && (
-              <Button
-                disabled={submitting}
-                onClick={() => setCalendarSetupOpen(true)}
-                variant="contained"
-              >
-                Set Up Calendar
-              </Button>
-            )}
-          {userData?.role === "physician" &&
-            userData?.calendarID &&
-            editMode && (
-              <Button
-                onClick={() => setColorPickerOpen(true)}
-                variant="outlined"
-                startIcon={
-                  <Box
-                    sx={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: "50%",
-                      bgcolor: userData?.calendarColor,
-                      flexShrink: 0,
-                    }}
+              <RenderTextField
+                editMode={editMode}
+                formik={formik}
+                fieldName="email"
+                type="email"
+                overrides={{ disabled: !userData.isActive || submitting }}
+              />
+            </Grid>
+            <Grid size={12}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                Role
+              </Typography>
+              <RenderSelectField
+                editMode={editMode}
+                formik={formik}
+                fieldName="role"
+                options={availableRoles}
+                overrides={{
+                  onChange: handleRoleChange,
+                  disabled: !canManageUser || submitting,
+                }}
+              />
+            </Grid>
+            <Grid size={12}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                Admin Permissions
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formik.values.isAdmin}
+                    onChange={(e) =>
+                      formik.setFieldValue("isAdmin", e.target.checked)
+                    }
+                    disabled={
+                      !editMode ||
+                      !canManageUser ||
+                      !isSuperuser ||
+                      submitting
+                    }
                   />
                 }
+              />
+            </Grid>
+            {!userData?.isActive &&
+              (userData?.deactivatedAt && userData?.deactivatedByEmail ? (
+                <Grid size={12}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    User was deactivated by {userData.deactivatedByEmail} on{" "}
+                    {dayjs(userData.deactivatedAt).format("MM/DD/YYYY, h:mm A")}
+                  </Typography>
+                </Grid>
+              ) : (
+                <Grid size={12}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    User has not been activated yet.
+                  </Typography>
+                </Grid>
+              ))}
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "space-between" }}>
+          <Grid sx={{ display: "flex", gap: 1 }}>
+            {userData?.role === "physician" &&
+              !userData?.calendarID &&
+              editMode && (
+                <Button
+                  disabled={submitting}
+                  onClick={handleCreateCalendar}
+                  variant="contained"
+                >
+                  Create Calendar
+                </Button>
+              )}
+            {userData?.role === "physician" &&
+              userData?.calendarID &&
+              editMode && (
+                <Button
+                  onClick={() => setColorPickerOpen(true)}
+                  variant="outlined"
+                  startIcon={
+                    <Box
+                      sx={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: "50%",
+                        bgcolor: userData?.calendarColor,
+                        flexShrink: 0,
+                      }}
+                    />
+                  }
+                >
+                  Calendar Color
+                </Button>
+              )}
+            {editMode && canManageUser && (
+              <Button
+                onClick={() => setDeactivateDialogOpen(true)}
+                variant="contained"
+                disabled={submitting}
               >
-                Calendar Color
+                Deactivate User
               </Button>
             )}
-        </Grid>
-        <Grid>
-          {editMode ? (
-            <>
-              <Button onClick={() => setEditMode(false)}>Cancel</Button>
+            {canReactivate && !editMode && (
               <Button
-                disabled={submitting}
-                onClick={formik.handleSubmit}
+                onClick={() => setReactivateDialogOpen(true)}
                 variant="contained"
+                disabled={submitting}
               >
-                Save
+                Reactivate User
               </Button>
-            </>
-          ) : (
-            <>
-              <Button onClick={() => setEditMode(true)} variant="contained">
-                Edit
-              </Button>
-              <Button onClick={handleClose}>Close</Button>
-            </>
-          )}
-        </Grid>
-      </DialogActions>
-      <CalendarSetupDialog
+            )}
+          </Grid>
+          <Grid>
+            {editMode ? (
+              <>
+                <Button onClick={() => setEditMode(false)}>Cancel</Button>
+                <Button
+                  disabled={submitting}
+                  onClick={formik.handleSubmit}
+                  variant="contained"
+                >
+                  Save
+                </Button>
+              </>
+            ) : (
+              <>
+                {userData?.isActive && canManageUser && (
+                  <Button onClick={() => setEditMode(true)} variant="contained">
+                    Edit
+                  </Button>
+                )}
+                <Button onClick={handleClose}>Close</Button>
+              </>
+            )}
+          </Grid>
+        </DialogActions>
+        <CalendarSetupDialog
         open={calendarSetupOpen}
         onClose={() => setCalendarSetupOpen(false)}
         user={userData}
         onUpdated={onUpdated}
       />
       <CalendarColorPicker
-        open={colorPickerOpen}
-        onClose={() => setColorPickerOpen(false)}
-        user={userData}
-        onUpdated={onUpdated}
+          open={colorPickerOpen}
+          onClose={() => setColorPickerOpen(false)}
+          user={userData}
+          onUpdated={onUpdated}
+        />
+      </Dialog>
+      <AlertDialog
+        open={deactivateDialogOpen}
+        title="Confirm User Deactivation"
+        description="Are you sure you want to deactivate this user?"
+        onClose={() => setDeactivateDialogOpen(false)}
+        onConfirm={handleConfirmDeactivate}
       />
-    </Dialog>
+      <AlertDialog
+        open={reactivateDialogOpen}
+        title="Confirm User Reactivation"
+        description="Are you sure you want to reactivate this user?"
+        onClose={() => setReactivateDialogOpen(false)}
+        onConfirm={handleConfirmReactivate}
+      />
+    </>
   );
 }

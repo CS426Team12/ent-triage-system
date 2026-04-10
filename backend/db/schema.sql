@@ -25,6 +25,8 @@ CREATE TABLE "User" (
     "calendarID"    TEXT,
     "calendarColor" TEXT,
     "isAdmin"      BOOLEAN DEFAULT FALSE,
+    "deactivatedAt" TIMESTAMPTZ,
+    "deactivatedBy" UUID REFERENCES ent."User"("userID");
 );
 
 -- ============================================================

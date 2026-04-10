@@ -25,8 +25,6 @@ export const FIELD_LABELS = {
   status: "Status",
 };
 
-import APP_COLORS from "../theme";
-
 // this should reflect how these enums are stored in db
 export const URGENCY_VALUES = {
   ROUTINE: "routine",
@@ -66,26 +64,26 @@ export const NAV_PAGES = [
   {
     label: "Dashboard",
     path: "/dashboard",
-    roles: ["physician", "staff"],
+    roles: ["physician", "staff", "superuser"],
     icon: Assessment,
   },
   {
     label: "Admin Portal",
     path: "/admin",
-    roles: ["admin"],
+    roles: ["admin", "superuser"],
     icon: SupervisorAccount,
     hasAdminPermission: true,
   },
   {
     label: "Calendar",
     path: "/calendar",
-    roles: ["physician", "staff"],
+    roles: ["physician", "staff", "superuser"],
     icon: CalendarMonth,
   },
   {
     label: "Analytics",
     path: "/analytics",
-    roles: ["admin"],
+    roles: ["admin", "superuser"],
     icon: Insights,
     hasAdminPermission: true,
   },
@@ -95,7 +93,14 @@ export const USER_ROLE_OPTIONS = [
   { value: "physician", label: "Physician" },
   { value: "staff", label: "Staff" },
   { value: "admin", label: "Admin" },
+  { value: "superuser", label: "Superuser", disabled: true },
 ];
+
+export const getUserRank = (user) => {
+  if (user?.role === "superuser") return 3;
+  if (user?.role === "admin" || user?.isAdmin) return 2;
+  return 1;
+};
 
 export const AI_REASONING_FLAG_LABELS = {
   SYMPTOM: "Symptom(s)",
