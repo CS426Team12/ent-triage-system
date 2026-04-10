@@ -1,11 +1,7 @@
-import {
-  EditUserButtonCellRenderer,
-  concatNameValueGetter,
-} from '../gridUtils';
+import { concatNameValueGetter } from '../gridUtils';
 import { roleLabel } from '../consts';
 
-// callback so callers can pass refresh handlers (fetchUsers)
-export const userColumnDefs = (onUserUpdated) => [
+export const userColumnDefs = () => [
   {
     headerName: 'Name',
     colId: 'name',
@@ -39,13 +35,5 @@ export const userColumnDefs = (onUserUpdated) => [
     sortable: true,
     cellRenderer: 'agCheckboxCellRenderer',
     cellRendererParams: { disabled: true },
-  },
-  {
-    headerName: 'Edit',
-    flex: 0.25,
-    minWidth: 100,
-    cellRenderer: EditUserButtonCellRenderer,
-    cellRendererParams: { onUserUpdated },
-    sortable: false,
   },
 ];

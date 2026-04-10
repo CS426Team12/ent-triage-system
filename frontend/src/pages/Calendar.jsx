@@ -2,7 +2,6 @@ import Navbar from "../components/Navbar";
 import { useEffect, useState, useMemo } from "react";
 import {
   Box,
-  Grid,
   Typography,
   Paper,
   Stack,
@@ -10,8 +9,9 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
+  IconButton,
 } from "@mui/material";
-import { CalendarMonth } from "@mui/icons-material";
+import { CalendarMonth, Refresh } from "@mui/icons-material";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -111,40 +111,32 @@ export const Calendar = () => {
   return (
     <>
       <Navbar />
-      <Box sx={{ bgcolor: "background.default" }}>
-        <Grid container spacing={3} sx={{ p: 3 }}>
-          <Grid size={12}>
-            <Paper
-              elevation={0}
-              sx={{
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 2,
-                overflow: "hidden",
-              }}
-            >
-              <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 2,
-                      bgcolor: "primary.main",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <CalendarMonth sx={{ fontSize: 24, color: "white" }} />
-                  </Box>
-                  <Typography
-                    variant="h5"
-                    color="text.primary"
-                    sx={{ fontWeight: 600, flexGrow: 1 }}
-                  >
+      <Box sx={{ bgcolor: "background.default", minHeight: "calc(100vh - 65px)" }}>
+        <Box sx={{ p: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              border: 1,
+              borderColor: "divider",
+              borderRadius: 2,
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {/* Header */}
+            <Box sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
                     Schedule
                   </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    View and manage physician appointments
+                  </Typography>
+                </Box>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  {/* Physician filter pills */}
                   <Stack direction="row" spacing={1} flexWrap="wrap">
                     {data.physicians
                       .filter((p) => p.calendarID)
@@ -160,9 +152,7 @@ export const Calendar = () => {
                             spacing={0.5}
                             onClick={() =>
                               setSelectedPhysician(
-                                selectedPhysician === p.userID
-                                  ? null
-                                  : p.userID,
+                                selectedPhysician === p.userID ? null : p.userID,
                               )
                             }
                             sx={{
@@ -196,7 +186,8 @@ export const Calendar = () => {
                               fontWeight={600}
                               sx={{ color: p.calendarColor }}
                             >
-                              Dr. {p.lastName}{p.userID === user?.userID ? " (You)" : ""}
+                              Dr. {p.lastName}
+                              {p.userID === user?.userID ? " (You)" : ""}
                             </Typography>
                           </Stack>
                         </Tooltip>
@@ -218,43 +209,52 @@ export const Calendar = () => {
                       </ToggleButton>
                     ))}
                   </ToggleButtonGroup>
+                  <Tooltip title="Refresh">
+                    <span>
+                      <IconButton size="small" onClick={fetchData} disabled={loading}>
+                        <Refresh fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
                 </Stack>
-              </Box>
-              <Box sx={{ height: "76vh", p: 2 }}>
-                {loading ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      height: "100%",
-                    }}
-                  >
-                    <CircularProgress />
-                  </Box>
-                ) : (
-                  <FullCalendar
-                    plugins={[dayGridPlugin, timeGridPlugin, listPlugin]}
-                    key={fcView}
-                    initialView={fcView}
-                    events={events}
-                    height="100%"
-                    headerToolbar={{
-                      left: "prev,next today",
-                      center: "title",
-                      right: "",
-                    }}
-                    slotMinTime="08:00:00"
-                    slotMaxTime="17:00:00"
-                    nowIndicator
-                    eventTextColor={APP_COLORS.text.contrastText}
-                    eventClick={handleEventClick}
-                  />
-                )}
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
+              </Stack>
+            </Box>
+
+            {/* Calendar body */}
+            <Box sx={{ height: "75vh", p: 2 }}>
+              {loading ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "100%",
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <FullCalendar
+                  plugins={[dayGridPlugin, timeGridPlugin, listPlugin]}
+                  key={fcView}
+                  initialView={fcView}
+                  events={events}
+                  height="100%"
+                  headerToolbar={{
+                    left: "prev,next today",
+                    center: "title",
+                    right: "",
+                  }}
+                  slotMinTime="08:00:00"
+                  slotMaxTime="17:00:00"
+                  nowIndicator
+                  eventTextColor={APP_COLORS.text.contrastText}
+                  eventClick={handleEventClick}
+                />
+              )}
+            </Box>
+          </Paper>
+        </Box>
       </Box>
       {selectedCase && (
         <CaseDetailsDialog
