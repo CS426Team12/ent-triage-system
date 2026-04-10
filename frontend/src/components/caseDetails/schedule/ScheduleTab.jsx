@@ -20,6 +20,7 @@ import { SchedulingForm } from "./SchedulingForm";
 import { AvailabilityCalendar, addMinutes } from "./AvailabilityCalendar";
 import { AppointmentInfo } from "./AppointmentInfo";
 import { triageCaseService } from "../../../api/triageCaseService";
+import { useAuth } from "../../../context/AuthContext";
 
 export const ScheduleTab = ({
   caseID,
@@ -28,6 +29,7 @@ export const ScheduleTab = ({
   handleClose,
   onUpdated,
 }) => {
+  const { user } = useAuth();
   const [physicians, setPhysicians] = React.useState([]);
   const [appointment, setAppointment] = React.useState(null);
   const [loadingAppointment, setLoadingAppointment] = React.useState(false);
@@ -334,6 +336,7 @@ export const ScheduleTab = ({
     onDurationChange: handleDurationChange,
     errors,
     submitting,
+    currentUserID: user?.userID,
   };
 
   const availabilityProps = {

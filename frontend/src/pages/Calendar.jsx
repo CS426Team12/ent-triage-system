@@ -25,6 +25,7 @@ import timezone from "dayjs/plugin/timezone";
 import { CaseDetailsDialog } from "../components/caseDetails/CaseDetailsDialog";
 import { triageCaseService } from "../api/triageCaseService";
 import { APP_COLORS } from "../theme";
+import { useAuth } from "../context/AuthContext";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,6 +39,7 @@ const VIEW_MODES = [
 ];
 
 export const Calendar = () => {
+  const { user } = useAuth();
   const [data, setData] = useState({ physicians: [], appointments: [] });
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("WEEK");
@@ -194,7 +196,7 @@ export const Calendar = () => {
                               fontWeight={600}
                               sx={{ color: p.calendarColor }}
                             >
-                              Dr. {p.lastName}
+                              Dr. {p.lastName}{p.userID === user?.userID ? " (You)" : ""}
                             </Typography>
                           </Stack>
                         </Tooltip>

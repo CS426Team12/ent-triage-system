@@ -10,8 +10,6 @@ import {
   Grid,
   Typography,
   Divider,
-  Switch,
-  FormControlLabel,
   Box,
   Stack,
 } from "@mui/material";
@@ -21,8 +19,7 @@ import { USER_ROLE_OPTIONS } from "../../utils/consts";
 import { getChangedFields } from "../../utils/utils";
 import { useAuth } from "../../context/AuthContext";
 import { CalendarColorPicker } from "../CalendarColorPicker";
-import { toast } from "../../utils/toast";
-import { calendarManagementService } from "../../api/calendarService";
+import CalendarSetupDialog from "./CalendarSetupDialog";
 
 export default function EditUserDialog({
   open,
@@ -36,6 +33,7 @@ export default function EditUserDialog({
   const { user } = useAuth();
   const isCurrentUser = user?.userID === userData?.userID;
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [calendarSetupOpen, setCalendarSetupOpen] = useState(false);
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -102,7 +100,9 @@ export default function EditUserDialog({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 600 }}>Edit User Details</DialogTitle>
+      <DialogTitle>
+        <Typography sx={{ fontWeight: 600 }}>Edit User Details</Typography>
+      </DialogTitle>
       <Divider />
       <DialogContent>
         <Grid container spacing={2}>
@@ -161,31 +161,7 @@ export default function EditUserDialog({
               formik={formik}
               fieldName="role"
               options={USER_ROLE_OPTIONS}
-              overrides={{
-                onChange: handleRoleChange,
-                disabled: isCurrentUser || submitting,
-              }}
-            />
-          </Grid>
-          <Grid size={12}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-              Admin Permissions
-            </Typography>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formik.values.isAdmin}
-                  onChange={(e) =>
-                    formik.setFieldValue("isAdmin", e.target.checked)
-                  }
-                  disabled={
-                    !editMode ||
-                    formik.values.role === "admin" ||
-                    isCurrentUser ||
-                    submitting
-                  }
-                />
-              }
+              overrides={{ disabled: isCurrentUser || submitting }}
             />
           </Grid>
         </Grid>
@@ -194,13 +170,14 @@ export default function EditUserDialog({
         <Grid sx={{ display: "flex", gap: 1 }}>
           {userData?.role === "physician" &&
             !userData?.calendarID &&
+            userData?.isActive &&
             editMode && (
               <Button
                 disabled={submitting}
-                onClick={handleCreateCalendar}
+                onClick={() => setCalendarSetupOpen(true)}
                 variant="contained"
               >
-                Create Calendar
+                Set Up Calendar
               </Button>
             )}
           {userData?.role === "physician" &&
@@ -247,6 +224,12 @@ export default function EditUserDialog({
           )}
         </Grid>
       </DialogActions>
+      <CalendarSetupDialog
+        open={calendarSetupOpen}
+        onClose={() => setCalendarSetupOpen(false)}
+        user={userData}
+        onUpdated={onUpdated}
+      />
       <CalendarColorPicker
         open={colorPickerOpen}
         onClose={() => setColorPickerOpen(false)}
