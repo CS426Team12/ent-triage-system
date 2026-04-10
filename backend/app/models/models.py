@@ -23,6 +23,7 @@ class UserUpdate(SQLModel):
     email: Optional[str] = None
     role: Optional[str] = None
     isAdmin: Optional[bool] = None
+    isActive: Optional[bool] = None
 
 class UserPublic(SQLModel):
     userID: uuid.UUID
@@ -35,6 +36,8 @@ class UserPublic(SQLModel):
     calendarID: Optional[str] = None
     calendarColor: Optional[str] = None
     isActive: bool = Field(default=False)
+    deactivatedAt: Optional[datetime] = None
+    deactivatedByEmail: Optional[str] = None
 
 class UsersList(SQLModel):
     data: list[UserPublic]
@@ -55,6 +58,8 @@ class User(SQLModel, table=True):
     calendarID: Optional[str] = None
     calendarColor: Optional[str] = None
     isActive: bool = Field(default=False)
+    deactivatedAt: Optional[datetime] = None
+    deactivatedBy: Optional[uuid.UUID] = None
 
 class Message(SQLModel):
     message: str

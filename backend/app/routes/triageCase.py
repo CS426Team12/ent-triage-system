@@ -46,7 +46,6 @@ def build_case_public(case: TriageCase, db: Session) -> TriageCasePublic:
             reviewed_by_email = reviewer.email
             
     previous_urgency = None
-    urgency_change_by_email = None
     if case.overrideUrgency:
         statement = (
             select(TriageCaseChangelog)

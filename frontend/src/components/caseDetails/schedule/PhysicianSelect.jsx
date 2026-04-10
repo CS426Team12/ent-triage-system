@@ -23,7 +23,7 @@ export const PhysicianSelect = ({
       label={"Physician"}
       disabled={disabled}
     >
-      {physicians.map((p) => (
+      {physicians.filter((p) => p.isActive).map((p) => (
         <MenuItem key={p.userID} value={p.userID} disabled={!p.calendarID}>
           <Box
             sx={{

@@ -15,10 +15,21 @@ import {
 } from "@mui/material";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
-import { USER_ROLE_OPTIONS } from "../../utils/consts";
+import { USER_ROLE_OPTIONS, getUserRank } from "../../utils/consts";
+import { useAuth } from "../../context/AuthContext";
 
 export default function CreateUserDialog({ open, onClose, onSave }) {
   const [submitting, setSubmitting] = React.useState(false);
+  const { user } = useAuth();
+  const actorRank = getUserRank(user);
+  const isSuperuser = actorRank >= 3;
+
+  // admins (rank 2) can only create rank 1 users; superusers can create rank 1 and 2
+  const availableRoles = USER_ROLE_OPTIONS.filter((opt) => {
+    if (opt.value === "superuser") return false;
+    if (opt.value === "admin") return isSuperuser;
+    return true;
+  });
 
   const formik = useFormik({
     validateOnMount: true,
@@ -97,25 +108,27 @@ export default function CreateUserDialog({ open, onClose, onSave }) {
             formik={formik}
             fieldName="role"
             label="Role *"
-            options={USER_ROLE_OPTIONS}
+            options={availableRoles}
             overrides={{ onChange: handleRoleChange, disabled: submitting }}
           />
-          <Grid size={12}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-              Admin Permissions
-            </Typography>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formik.values.isAdmin}
-                  onChange={(e) =>
-                    formik.setFieldValue("isAdmin", e.target.checked)
-                  }
-                  disabled={formik.values.role === "admin" || submitting}
-                />
-              }
-            />
-          </Grid>
+          {isSuperuser && (
+            <Grid size={12}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                Admin Permissions
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formik.values.isAdmin}
+                    onChange={(e) =>
+                      formik.setFieldValue("isAdmin", e.target.checked)
+                    }
+                    disabled={formik.values.role === "admin" || submitting}
+                  />
+                }
+              />
+            </Grid>
+          )}
           <Typography variant="caption" color="textSecondary" sx={{ mt: 1 }}>
             An invitation email with login credentials will be sent to the user.
           </Typography>
