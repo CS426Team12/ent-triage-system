@@ -70,7 +70,7 @@ export const CaseFileList = ({ caseId }) => {
   };
 
   return (
-    <Paper elevation={3} sx={{ maxHeight: 240, overflow: "auto" }}>
+    <Paper elevation={1} sx={{ maxHeight: 240, overflow: "auto" }}>
       {loading ? (
         <Typography sx={{ p: 2 }}>Loading...</Typography>
       ) : files.length === 0 ? (

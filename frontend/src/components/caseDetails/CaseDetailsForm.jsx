@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Grid, Typography, Button, Divider } from "@mui/material";
+import { Box, Grid, Typography, Button, Divider, Paper } from "@mui/material";
+import { SectionHeader } from "./SectionHeader";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
 import { UrgencyChangeIndicator } from "../UrgencyChangeIndicator";
@@ -88,12 +89,11 @@ export const CaseDetailsForm = ({
   };
 
   return (
-    <Grid container spacing={4}>
+    <Grid container spacing={3}>
       <Grid size={4}>
-        <Typography variant="h8" sx={{ fontWeight: 600 }}>
-          Patient Information
-        </Typography>
-        <Box mt={2} display="flex" flexDirection="column" gap={2}>
+        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+        <SectionHeader>Patient Information</SectionHeader>
+        <Box display="flex" flexDirection="column" gap={2}>
           <RenderTextField
             editMode={editMode}
             formik={formik}
@@ -139,39 +139,38 @@ export const CaseDetailsForm = ({
             overrides={{ disabled: submitting }}
           />
         </Box>
+        </Paper>
         {caseData?.status === STATUS_VALUES.REVIEWED && (
-          <Box mt={3} display="flex" flexDirection="column" gap={2}>
-            <Divider />
-            <Typography variant="h8" sx={{ fontWeight: 600, mt: 1 }}>
-              Review Information
-            </Typography>
-            <RenderTextField
-              editMode={false}
-              formik={formik}
-              fieldName="reviewReason"
-              label={FIELD_LABELS.reviewReason}
-            />
-            <RenderTextField
-              editMode={false}
-              formik={formik}
-              fieldName="reviewedByEmail"
-              label={FIELD_LABELS.reviewedByEmail}
-            />
-            <RenderTextField
-              editMode={false}
-              formik={formik}
-              fieldName="scheduledDate"
-              label={FIELD_LABELS.scheduledDate}
-              type="datetime-local"
-            />
-          </Box>
+          <Paper elevation={1} sx={{ p: 2 }}>
+            <SectionHeader>Review Information</SectionHeader>
+            <Box display="flex" flexDirection="column" gap={2}>
+              <RenderTextField
+                editMode={false}
+                formik={formik}
+                fieldName="reviewReason"
+                label={FIELD_LABELS.reviewReason}
+              />
+              <RenderTextField
+                editMode={false}
+                formik={formik}
+                fieldName="reviewedByEmail"
+                label={FIELD_LABELS.reviewedByEmail}
+              />
+              <RenderTextField
+                editMode={false}
+                formik={formik}
+                fieldName="scheduledDate"
+                label={FIELD_LABELS.scheduledDate}
+                type="datetime-local"
+              />
+            </Box>
+          </Paper>
         )}
       </Grid>
       <Grid size={8}>
-        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-          <Typography variant="h8" sx={{ fontWeight: 600 }}>
-            Case Information
-          </Typography>
+        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+        <SectionHeader>Case Information</SectionHeader>
+        <Box display="flex" flexDirection="column" gap={2}>
           <Box>
             <Box mb={2}>
               {editMode ? (
@@ -207,11 +206,14 @@ export const CaseDetailsForm = ({
                 </Box>
               )}
             </Box>
-            <Box mb={2}>
-              <Typography variant="subtitle2" color="textSecondary">
+            <Box mb={2} sx={{ pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, fontSize: "0.62rem", color: "text.secondary" }}
+              >
                 {FIELD_LABELS.dateCreated}
               </Typography>
-              <Typography variant="body2">
+              <Typography variant="body2" sx={{ mt: 0.25 }}>
                 {dayjs(caseData.dateCreated).format("MM/DD/YYYY, h:mm A")}
               </Typography>
             </Box>
@@ -242,6 +244,7 @@ export const CaseDetailsForm = ({
             overrides={{ disabled: submitting }}
           />
         </Box>
+        </Paper>
       </Grid>
       <Grid size={12}>
         <Divider />

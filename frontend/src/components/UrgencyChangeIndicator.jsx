@@ -3,6 +3,7 @@ import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { red, green } from "@mui/material/colors";
 import { URGENCY_PRIORITY, URGENCY_LABELS } from "../utils/consts";
+import { URGENCY_COLORS } from "../theme";
 import { EscalatedBadge, DeescalatedBadge } from "./common/SourceBadge";
 
 
@@ -23,7 +24,7 @@ export const UrgencyChangeIndicator = ({
   if (compact) {
     return (
       <Tooltip title={title} placement="right" arrow>
-        <Icon sx={{ fontSize: 40, color: increased ? red[700] : green[700] }} />
+        <Icon sx={{ fontSize: 40, color: URGENCY_COLORS[currentUrgency] ?? (increased ? red[700] : green[700]) }} />
       </Tooltip>
     );
   }

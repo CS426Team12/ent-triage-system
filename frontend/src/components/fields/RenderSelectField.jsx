@@ -20,16 +20,26 @@ export default function RenderSelectField({
   // Two Types of select fields: with chips (urgencies) or normal text dropdown
   if (!editMode) {
     return (
-      <Box>
-        <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 0.5 }}>
+      <Box sx={{ pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+            fontSize: "0.62rem",
+            color: "text.secondary",
+          }}
+        >
           {label}
         </Typography>
         {renderChip ? (
-          <UrgencyPill value={formik.values[fieldName]} />
+          <Box mt={0.5}>
+            <UrgencyPill value={formik.values[fieldName]} />
+          </Box>
         ) : (
-          <Typography variant="body2">
-            {options.find((o) => o.value === formik.values[fieldName])?.label ||
-              "---"}
+          <Typography variant="body2" sx={{ mt: 0.25, color: "text.primary" }}>
+            {options.find((o) => o.value === formik.values[fieldName])?.label || "—"}
           </Typography>
         )}
       </Box>

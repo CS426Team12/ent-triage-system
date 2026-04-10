@@ -12,7 +12,7 @@ const badgeSx = {
   fontSize: "0.6rem",
   fontWeight: 700,
   "& .MuiChip-label": { px: 1 },
-  "& .MuiChip-icon": { fontSize: "16px !important", color: "#fff", ml: 0.75 },
+  "& .MuiChip-icon": { fontSize: "12px !important", color: "#fff", ml: 0.75 },
 };
 
 export function AIBadge({ sx = {} }) {

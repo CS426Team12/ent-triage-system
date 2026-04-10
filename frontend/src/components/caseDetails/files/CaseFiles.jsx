@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Typography, Box } from "@mui/material";
-
+import { Box, Stack } from "@mui/material";
+import { SectionHeader } from "../SectionHeader";
 import { CaseFileUpload } from "./CaseFileUpload";
 import { CaseFileList } from "./CaseFileList";
 
@@ -10,18 +10,14 @@ export const CaseFiles = ({ caseId }) => {
 
   return (
     <Box>
-      <Typography sx={{ fontWeight: 600 }} gutterBottom>
-        Case Files
-      </Typography>
-      <Box margin={2}>
+      <SectionHeader>Case Files</SectionHeader>
+      <Stack spacing={2}>
         <CaseFileList key={refreshKey} caseId={caseId} />
-      </Box>
-      <Box margin={2}>
         <CaseFileUpload
           caseId={caseId}
           onUploadComplete={() => setRefreshKey((prev) => prev + 1)}
         />
-      </Box>
+      </Stack>
     </Box>
   );
 };

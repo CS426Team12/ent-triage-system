@@ -39,6 +39,7 @@ import {
 } from "../../utils/consts";
 import dayjs from "dayjs";
 import { stringToBool } from "../../utils/utils";
+import { SectionHeader } from "./SectionHeader";
 
 const HISTORY_VIEWS = {
   COMBINED: "combined",
@@ -261,17 +262,9 @@ export const CaseHistory = ({ caseId, patientId, handleClose }) => {
   }
 
   return (
-    <Grid container direction="column" spacing={2}>
+    <Box display="flex" flexDirection="column" gap={2}>
+      <SectionHeader sx={{ mb: 0 }}>Change History</SectionHeader>
       <Stack spacing={2}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Typography variant="h8" sx={{ fontWeight: 600 }}>
-            Change History
-          </Typography>
-        </Stack>
         <Stack direction="row" spacing={2}>
           <DateTimePicker
             label="Start Date"
@@ -551,12 +544,10 @@ export const CaseHistory = ({ caseId, patientId, handleClose }) => {
           </Grid>
         </>
       )}
-      <Grid item size={12}>
-        <Divider />
-      </Grid>
-      <Grid item display="flex" justifyContent="flex-end">
+      <Divider />
+      <Box display="flex" justifyContent="flex-end">
         <Button onClick={handleClose}>Close</Button>
-      </Grid>
-    </Grid>
+      </Box>
+    </Box>
   );
 };
