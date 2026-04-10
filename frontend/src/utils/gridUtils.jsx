@@ -1,9 +1,10 @@
 import React from "react";
-import { Chip, IconButton, Box } from "@mui/material";
+import { IconButton, Box, Typography } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 import dayjs from "dayjs";
-import { URGENCY_PRIORITY, URGENCY_LABELS } from "../utils/consts";
-import theme, { URGENCY_COLORS } from "../theme";
+import { URGENCY_PRIORITY } from "../utils/consts";
+import UrgencyPill from "../components/common/UrgencyPill";
+import { AIBadge } from "../components/common/SourceBadge";
 import { CaseDetailsDialog } from "../components/caseDetails/CaseDetailsDialog";
 import EditUserDialog from "../components/admin/EditUserDialog";
 import { userService } from "../api/userService";
@@ -13,19 +14,45 @@ import { UrgencyChangeIndicator } from "../components/UrgencyChangeIndicator";
 export const UrgencyCellRenderer = (params) => {
   if (!params.value) return null;
 
-  const label = URGENCY_LABELS[params.value];
-  const color = URGENCY_COLORS[params.value];
+  const { AIUrgency, overrideUrgency } = params.data;
 
   return (
-    <Chip
-      label={label}
-      size="medium"
-      sx={{
-        backgroundColor: color,
-        color: theme.palette.getContrastText(color),
-        fontWeight: "bold",
-        fontSize: "0.75rem",
-      }}
+    <Box display="flex" alignItems="center" gap={0.5}>
+      <UrgencyPill value={params.value} />
+      <UrgencyChangeIndicator
+        prevUrgency={AIUrgency}
+        currentUrgency={overrideUrgency || AIUrgency}
+        compact
+      />
+    </Box>
+  );
+};
+
+export const SummaryCellRenderer = (params) => {
+  const { overrideSummary, AISummary } = params.data;
+  const summary = overrideSummary || AISummary;
+  const isAI = !overrideSummary;
+
+  return (
+    <Box display="flex" alignItems="center" gap={0.75} sx={{ width: "100%", overflow: "hidden" }}>
+      <Typography
+        variant="body2"
+        sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+      >
+        {summary}
+      </Typography>
+      {isAI && <AIBadge sx={{ flexShrink: 0 }} />}
+    </Box>
+  );
+};
+
+export const UrgencyChangeCellRenderer = (params) => {
+  const { AIUrgency, overrideUrgency } = params.data;
+  return (
+    <UrgencyChangeIndicator
+      prevUrgency={AIUrgency}
+      currentUrgency={overrideUrgency || AIUrgency}
+      compact
     />
   );
 };
@@ -99,14 +126,6 @@ export const EditUserButtonCellRenderer = (params) => {
   );
 };
 
-export const UrgencyChangeCellRenderer = (params) => {
-  const { previousUrgency, overrideUrgency, AIUrgency } = params.data;
-  const current = overrideUrgency || AIUrgency;
-  const prev = previousUrgency || AIUrgency;
-
-  return <UrgencyChangeIndicator prevUrgency={prev} currentUrgency={current} />;
-};
-
 export const ageValueGetter = (dob) => {
   if (!dob) return null;
   return dayjs().diff(dayjs(dob), "year");
@@ -119,6 +138,19 @@ export const concatNameValueGetter = (firstName, lastName) => {
 export const dateTimeFormatter = (params) => {
   if (!params.value) return "";
   return dayjs(params.value).format("MM/DD/YYYY, h:mm A");
+};
+
+export const relativeDateFormatter = (params) => {
+  if (!params.value) return "";
+  const date = dayjs(params.value);
+  const now = dayjs();
+  if (date.isSame(now, "day")) {
+    const diffMins = now.diff(date, "minute");
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = now.diff(date, "hour");
+    return `${diffHours}h ago`;
+  }
+  return date.format("MM/DD/YYYY, h:mm A");
 };
 
 export const urgencyComparator = (a, b) => {

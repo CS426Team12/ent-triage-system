@@ -1,37 +1,34 @@
-import { Tooltip } from '@mui/material';
-import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import { URGENCY_PRIORITY } from '../utils/consts';
+import { Tooltip } from "@mui/material";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import { red, green } from "@mui/material/colors";
+import { URGENCY_PRIORITY, URGENCY_LABELS } from "../utils/consts";
+import { EscalatedBadge, DeescalatedBadge } from "./common/SourceBadge";
 
-export const UrgencyChangeIndicator = ({ prevUrgency, currentUrgency, iconSize = 40 }) => {
+
+export const UrgencyChangeIndicator = ({
+  prevUrgency,
+  currentUrgency,
+  compact = false,
+}) => {
   if (!prevUrgency || !currentUrgency || prevUrgency === currentUrgency) {
     return null;
   }
 
-  const increased = URGENCY_PRIORITY[currentUrgency] < URGENCY_PRIORITY[prevUrgency];
+  const increased =
+    URGENCY_PRIORITY[currentUrgency] < URGENCY_PRIORITY[prevUrgency];
+  const Icon = increased ? ArrowDropUpIcon : ArrowDropDownIcon;
+  const title = `Changed from ${URGENCY_LABELS[prevUrgency] ?? prevUrgency} to ${URGENCY_LABELS[currentUrgency] ?? currentUrgency}`;
 
-  return (
-    <Tooltip 
-      placement="right"
-      title={`Urgency updated from ${prevUrgency.toUpperCase()} to ${currentUrgency.toUpperCase()}`}
-    >
-      <span style={{ display: 'inline-flex', alignItems: 'center'}}>
-        {increased ? (
-          <ArrowDropUpIcon 
-            sx={{ 
-              color: 'error.main',
-              fontSize: iconSize,
-            }} 
-          />
-        ) : (
-          <ArrowDropDownIcon 
-            sx={{ 
-              color: 'success.main',
-              fontSize: iconSize,
-            }} 
-          />
-        )}
-      </span>
-    </Tooltip>
-  );
+  if (compact) {
+    return (
+      <Tooltip title={title} placement="right" arrow>
+        <Icon sx={{ fontSize: 40, color: increased ? red[700] : green[700] }} />
+      </Tooltip>
+    );
+  }
+
+  return increased
+    ? <EscalatedBadge title={title} />
+    : <DeescalatedBadge title={title} />;
 };

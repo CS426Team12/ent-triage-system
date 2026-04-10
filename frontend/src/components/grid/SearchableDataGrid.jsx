@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import DataGrid from "./DataGrid";
 import { TextField, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+
 const SearchableDataGrid = ({
   rowData,
   columnDefs,
   gridOptions = {},
   loading,
+  onRowClicked,
+  noRowsMessage,
 }) => {
   const [search, setSearch] = useState("");
 
@@ -44,6 +47,8 @@ const SearchableDataGrid = ({
         gridOptions={gridOptions}
         loading={loading}
         quickFilterText={search}
+        onRowClicked={onRowClicked}
+        noRowsMessage={noRowsMessage}
       />
     </div>
   );

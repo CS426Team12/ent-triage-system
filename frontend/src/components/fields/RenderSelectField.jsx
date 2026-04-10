@@ -5,9 +5,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
 } from "@mui/material";
-import theme, { URGENCY_COLORS, APP_COLORS } from "../../theme";
+import UrgencyPill from "../common/UrgencyPill";
 
 export default function RenderSelectField({
   editMode,
@@ -26,20 +25,7 @@ export default function RenderSelectField({
           {label}
         </Typography>
         {renderChip ? (
-          <Chip
-            key={formik.values[fieldName]}
-            label={
-              options.find((o) => o.value === formik.values[fieldName])
-                ?.label || "---"
-            }
-            sx={{
-              backgroundColor: URGENCY_COLORS[formik.values[fieldName]] ?? APP_COLORS.neutral[500],
-              color: theme.palette.getContrastText(
-                URGENCY_COLORS[formik.values[fieldName]] ?? APP_COLORS.neutral[500],
-              ),
-              fontWeight: 500,
-            }}
-          />
+          <UrgencyPill value={formik.values[fieldName]} />
         ) : (
           <Typography variant="body2">
             {options.find((o) => o.value === formik.values[fieldName])?.label ||
@@ -63,14 +49,7 @@ export default function RenderSelectField({
         error={formik.touched[fieldName] && Boolean(formik.errors[fieldName])}
         renderValue={(selected) =>
           renderChip ? (
-            <Chip
-              label={options.find((o) => o.value === selected)?.label || "---"}
-              sx={{
-                backgroundColor: URGENCY_COLORS[selected] ?? APP_COLORS.neutral[500],
-                color: theme.palette.getContrastText(URGENCY_COLORS[selected] ?? APP_COLORS.neutral[500]),
-                fontWeight: 500,
-              }}
-            />
+            <UrgencyPill value={selected} />
           ) : (
             options.find((o) => o.value === selected)?.label || selected
           )

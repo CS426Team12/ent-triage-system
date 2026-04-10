@@ -2,8 +2,9 @@ import React from "react";
 import { Box, Grid, Typography, Button, Divider } from "@mui/material";
 import RenderTextField from "../fields/RenderTextField";
 import RenderSelectField from "../fields/RenderSelectField";
-import AIReasoningField from "../fields/AIReasoningField";
 import { UrgencyChangeIndicator } from "../UrgencyChangeIndicator";
+import UrgencyPill from "../common/UrgencyPill";
+import { AIBadge, OverrideBadge } from "../common/SourceBadge";
 import { triageCaseService } from "../../api/triageCaseService";
 import { patientService } from "../../api/patientService";
 import { toast } from "../../utils/toast";
@@ -16,7 +17,7 @@ import {
   FIELD_LABELS,
 } from "../../utils/consts";
 import dayjs from "dayjs";
-import FeedbackWidget from "./feedback/FeedbackWidget";
+import AIAnalysisCard from "./AIAnalysisCard";
 
 export const CaseDetailsForm = ({
   formik,
@@ -75,7 +76,7 @@ export const CaseDetailsForm = ({
       }
 
       toast.success("Successfully updated case");
-      onUpdated(); // refresh grid after update
+      onUpdated(caseData.caseID); // pass caseID so Dashboard refreshes selectedCase
       handleClose();
     } catch (err) {
       toast.error("Failed to update case.");
@@ -88,7 +89,7 @@ export const CaseDetailsForm = ({
 
   return (
     <Grid container spacing={4}>
-      <Grid item size={4}>
+      <Grid size={4}>
         <Typography variant="h8" sx={{ fontWeight: 600 }}>
           Patient Information
         </Typography>
@@ -138,15 +139,42 @@ export const CaseDetailsForm = ({
             overrides={{ disabled: submitting }}
           />
         </Box>
+        {caseData?.status === STATUS_VALUES.REVIEWED && (
+          <Box mt={3} display="flex" flexDirection="column" gap={2}>
+            <Divider />
+            <Typography variant="h8" sx={{ fontWeight: 600, mt: 1 }}>
+              Review Information
+            </Typography>
+            <RenderTextField
+              editMode={false}
+              formik={formik}
+              fieldName="reviewReason"
+              label={FIELD_LABELS.reviewReason}
+            />
+            <RenderTextField
+              editMode={false}
+              formik={formik}
+              fieldName="reviewedByEmail"
+              label={FIELD_LABELS.reviewedByEmail}
+            />
+            <RenderTextField
+              editMode={false}
+              formik={formik}
+              fieldName="scheduledDate"
+              label={FIELD_LABELS.scheduledDate}
+              type="datetime-local"
+            />
+          </Box>
+        )}
       </Grid>
-      <Grid item size={8}>
+      <Grid size={8}>
         <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
           <Typography variant="h8" sx={{ fontWeight: 600 }}>
             Case Information
           </Typography>
           <Box>
             <Box mb={2}>
-              <Box display="flex" flexDirection="row" alignItems="center">
+              {editMode ? (
                 <RenderSelectField
                   editMode={editMode}
                   formik={formik}
@@ -159,34 +187,37 @@ export const CaseDetailsForm = ({
                   renderChip
                   overrides={{ disabled: submitting }}
                 />
-                <Box marginTop={3}>
-                  <UrgencyChangeIndicator
-                    prevUrgency={caseData.previousUrgency || caseData.AIUrgency}
-                    currentUrgency={
-                      caseData.overrideUrgency || caseData.AIUrgency
-                    }
-                  />
+              ) : (
+                <Box>
+                  <Box display="flex" alignItems="center" gap={0.75} sx={{ mb: 0.5 }}>
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Case Urgency
+                    </Typography>
+                    {caseData.overrideUrgency ? (
+                      <OverrideBadge />
+                    ) : (
+                      <AIBadge />
+                    )}
+                    <UrgencyChangeIndicator
+                      prevUrgency={caseData.previousUrgency || caseData.AIUrgency}
+                      currentUrgency={caseData.overrideUrgency || caseData.AIUrgency}
+                    />
+                  </Box>
+                  <UrgencyPill value={formik.values.overrideUrgency} />
                 </Box>
-              </Box>
+              )}
             </Box>
             <Box mb={2}>
               <Typography variant="subtitle2" color="textSecondary">
                 {FIELD_LABELS.dateCreated}
               </Typography>
-
               <Typography variant="body2">
                 {dayjs(caseData.dateCreated).format("MM/DD/YYYY, h:mm A")}
               </Typography>
             </Box>
-            <Typography variant="subtitle2" color="textSecondary">
-              {FIELD_LABELS.AISummary}
-            </Typography>
-            <Typography variant="body2">
-              {caseData.AISummary || "---"}
-            </Typography>
-            <AIReasoningField flags={caseData.flags} />
-            <FeedbackWidget
-              initialFeedback={feedback}
+            <AIAnalysisCard
+              caseData={caseData}
+              feedback={feedback}
               onFeedbackChange={onFeedbackChange}
             />
           </Box>
@@ -210,38 +241,12 @@ export const CaseDetailsForm = ({
             label={FIELD_LABELS.clinicianNotes}
             overrides={{ disabled: submitting }}
           />
-          {caseData?.status === STATUS_VALUES.REVIEWED && (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Typography variant="h8" sx={{ fontWeight: 600 }}>
-                Review Information
-              </Typography>
-              <RenderTextField
-                editMode={false}
-                formik={formik}
-                fieldName="reviewReason"
-                label={FIELD_LABELS.reviewReason}
-              />
-              <RenderTextField
-                editMode={false}
-                formik={formik}
-                fieldName="reviewedByEmail"
-                label={FIELD_LABELS.reviewedByEmail}
-              />
-              <RenderTextField
-                editMode={false}
-                formik={formik}
-                fieldName="scheduledDate"
-                label={FIELD_LABELS.scheduledDate}
-                type="datetime-local"
-              />
-            </Box>
-          )}
         </Box>
       </Grid>
-      <Grid item size={12}>
+      <Grid size={12}>
         <Divider />
       </Grid>
-      <Grid item size={12} display="flex" justifyContent="flex-end" gap={1}>
+      <Grid size={12} display="flex" justifyContent="flex-end" gap={1}>
         {editMode ? (
           <>
             <Button

@@ -4,24 +4,42 @@ import { Assessment } from "@mui/icons-material";
 import SearchableDataGrid from "../components/grid/SearchableDataGrid";
 import { unreviewedColDefs } from "../utils/coldefs/unreviewedTriageCases";
 import { reviewedColDefs } from "../utils/coldefs/reviewedTriageCases";
+import { CaseDetailsDialog } from "../components/caseDetails/CaseDetailsDialog";
 import Navbar from "../components/Navbar";
 import { STATUS_VALUES } from "../utils/consts";
 import { triageCaseService } from "../api/triageCaseService";
+import { toast } from "../utils/toast";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
   const [cases, setCases] = React.useState([]);
+  const [selectedCase, setSelectedCase] = React.useState(null);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
-  const fetchCases = async () => {
+  const handleRowClick = (params) => {
+    setSelectedCase(params.data);
+    setDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
+
+  const fetchCases = async (refreshCaseId) => {
     try {
       setLoading(true);
       const results = await triageCaseService.getAllCases();
-      setCases(results.cases || []);
+      const newCases = results.cases || [];
+      setCases(newCases);
+      if (refreshCaseId) {
+        const refreshed = newCases.find((c) => c.caseID === refreshCaseId);
+        if (refreshed) setSelectedCase(refreshed);
+      }
     } catch (err) {
       toast.error("Failed to load cases, please refresh.");
       console.error("Error fetching cases:", err);
@@ -105,18 +123,28 @@ export default function Dashboard() {
                 {activeTab === 0 && (
                   <SearchableDataGrid
                     rowData={unreviewedCases || []}
-                    columnDefs={unreviewedColDefs(fetchCases)}
+                    columnDefs={unreviewedColDefs()}
                     loading={loading}
+                    onRowClicked={handleRowClick}
+                    noRowsMessage="No unreviewed cases"
                   />
                 )}
                 {activeTab === 1 && (
                   <SearchableDataGrid
                     rowData={reviewedCases || []}
-                    columnDefs={reviewedColDefs(fetchCases)}
+                    columnDefs={reviewedColDefs()}
                     loading={loading}
+                    onRowClicked={handleRowClick}
+                    noRowsMessage="No reviewed cases"
                   />
                 )}
               </Box>
+              <CaseDetailsDialog
+                open={dialogOpen}
+                onClose={handleDialogClose}
+                caseData={selectedCase}
+                onUpdated={fetchCases}
+              />
             </Paper>
           </Grid>
         </Grid>
