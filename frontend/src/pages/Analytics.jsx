@@ -7,8 +7,8 @@ import {
   Card,
   CardContent,
   Paper,
-  Stack,
   Tooltip as MuiTooltip,
+  Stack,
 } from "@mui/material";
 import {
   BarChart,
@@ -22,8 +22,8 @@ import {
   Cell,
   ResponsiveContainer,
 } from "recharts";
-import { analyticsService } from "../api/analyticsService";
 import { Insights } from "@mui/icons-material";
+import { analyticsService } from "../api/analyticsService";
 import {
   ANALYTICS_KPIS,
   getValueFromPath,
@@ -34,6 +34,32 @@ import { APP_COLORS } from "../theme";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 const RATING_COLORS = [APP_COLORS.status.success, APP_COLORS.status.error]; // up / down
+
+function KpiCard({ label, value, tooltip }) {
+  return (
+    <MuiTooltip title={tooltip} arrow placement="top">
+      <Paper
+        elevation={0}
+        sx={{
+          flex: 1,
+          p: 2,
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: 2,
+          borderLeftWidth: 4,
+          borderLeftColor: "primary.main",
+          cursor: "default",
+        }}>
+        <Typography variant="h4" fontWeight={700} color="primary.main" lineHeight={1}>
+          {value}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          {label}
+        </Typography>
+      </Paper>
+    </MuiTooltip>
+  );
+}
 
 export default function Analytics() {
   const [loading, setLoading] = useState(true);
@@ -105,78 +131,32 @@ export default function Analytics() {
                 borderColor: "divider",
                 borderRadius: 2,
                 overflow: "hidden",
-              }}>
-              <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 2,
-                      bgcolor: "primary.main",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}>
-                    <Insights sx={{ fontSize: 24, color: "white" }} />
-                  </Box>
-                  <Typography
-                    variant="h5"
-                    color="text.primary"
-                    sx={{ fontWeight: 600 }}>
+              }}
+            >
+              <Box
+                sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Insights sx={{ fontSize: 24, color: "primary.main" }} />
+                  <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
                     Analytics
                   </Typography>
                 </Stack>
+                <Typography variant="body2" color="text.secondary">
+                  AI performance metrics and feedback trends
+                </Typography>
               </Box>
               <Box sx={{ p: 3 }}>
-                {/* KPI CARDS */}
-                <Grid container spacing={3} sx={{ mb: 2 }}>
+                <Box display="flex" gap={2} sx={{ mb: 3 }}>
                   {kpis.map((item, i) => (
-                    <Grid item xs={12} sm={6} md={3} key={i}>
-                      <MuiTooltip title={item.tooltip}>
-                        <Card
-                          sx={{
-                            width: 160,
-                            aspectRatio: "1 / 1",
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            p: 2,
-                          }}>
-                          {/* Label */}
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mb: 1, textAlign: "center" }}>
-                            {item.label}
-                          </Typography>
-
-                          {/* Value */}
-                          <Box
-                            sx={{
-                              flexGrow: 1,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              width: "100%",
-                            }}>
-                            <Typography
-                              sx={{
-                                fontWeight: 600,
-                                fontSize: "clamp(2rem, 4vw, 2.5rem)",
-                                textAlign: "center",
-                                lineHeight: 1,
-                                p: 2,
-                              }}>
-                              {item.value}
-                            </Typography>
-                          </Box>
-                        </Card>
-                      </MuiTooltip>
-                    </Grid>
+                    <KpiCard
+                      key={i}
+                      label={item.label}
+                      value={item.value}
+                      tooltip={item.tooltip}
+                    />
                   ))}
-                </Grid>
+                </Box>
 
                 <Grid container spacing={3}>
                   {/* Case Override/Feedback Bar */}
@@ -189,7 +169,8 @@ export default function Analytics() {
                         <ResponsiveContainer width="80%" height="80%">
                           <BarChart
                             data={overrideData || []}
-                            margin={{ top: 4, right: 4, left: 4, bottom: 40 }}>
+                            margin={{ top: 4, right: 4, left: 4, bottom: 40 }}
+                          >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               dataKey="name"
@@ -219,13 +200,15 @@ export default function Analytics() {
                         </Typography>
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart
-                            margin={{ top: 40, right: 4, left: 4, bottom: 40 }}>
+                            margin={{ top: 40, right: 4, left: 4, bottom: 40 }}
+                          >
                             <Pie
                               data={ratingData || []}
                               dataKey="value"
                               nameKey="name"
                               outerRadius="80%"
-                              label>
+                              label
+                            >
                               {ratingData?.map((entry, index) => (
                                 <Cell
                                   key={index}
@@ -241,7 +224,7 @@ export default function Analytics() {
                       </CardContent>
                     </Card>
                   </Grid>
-                  
+
                   {/* Tag Bar Chart */}
                   <Grid item xs={12}>
                     <Card sx={{ height: 350 }}>
@@ -252,7 +235,8 @@ export default function Analytics() {
                         <ResponsiveContainer width="80%" height="80%">
                           <BarChart
                             data={tagData}
-                            margin={{ top: 4, right: 4, left: 4, bottom: 80 }}>
+                            margin={{ top: 4, right: 4, left: 4, bottom: 80 }}
+                          >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               dataKey="name"

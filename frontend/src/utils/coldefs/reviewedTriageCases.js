@@ -2,21 +2,20 @@ import {
   UrgencyCellRenderer,
   urgencyComparator,
   dateTimeFormatter,
-  EditCaseButtonCellRenderer,
   concatNameValueGetter,
 } from '../gridUtils';
 
-export const reviewedColDefs = (onCaseUpdated) => [
+export const reviewedColDefs = () => [
   {
     headerName: 'Urgency',
-    flex: 1, // flex determines the proportion the column will take up
-    minWidth: 150, // set minimum width to create overflow on smaller window sizes
+    flex: 1,
+    minWidth: 150,
     cellRenderer: UrgencyCellRenderer,
     filter: 'agTextColumnFilter',
     comparator: urgencyComparator,
     valueGetter: (params) => {
       return params.data.overrideUrgency || params.data.AIUrgency;
-    }
+    },
   },
   {
     headerName: 'Name',
@@ -61,13 +60,5 @@ export const reviewedColDefs = (onCaseUpdated) => [
     sort: "desc",
     valueFormatter: dateTimeFormatter,
     filter: 'agDateColumnFilter',
-  },
-  {
-    headerName: 'Edit',
-    flex: 0.5,
-    minWidth: 100,
-    cellRenderer: EditCaseButtonCellRenderer,
-    cellRendererParams: { onCaseUpdated },
-    sortable: false,
   },
 ];

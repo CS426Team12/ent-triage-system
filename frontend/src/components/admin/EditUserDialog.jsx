@@ -10,9 +10,9 @@ import {
   Grid,
   Typography,
   Divider,
-  Switch,
-  FormControlLabel,
   Box,
+  FormControlLabel,
+  Switch
 } from "@mui/material";
 import AlertDialog from "../AlertDialog";
 import RenderTextField from "../fields/RenderTextField";
@@ -21,6 +21,7 @@ import { USER_ROLE_OPTIONS, getUserRank } from "../../utils/consts";
 import { getChangedFields } from "../../utils/utils";
 import { useAuth } from "../../context/AuthContext";
 import { CalendarColorPicker } from "../CalendarColorPicker";
+import CalendarSetupDialog from "./CalendarSetupDialog";
 import { toast } from "../../utils/toast";
 import { calendarManagementService } from "../../api/calendarService";
 import dayjs from "dayjs";
@@ -37,6 +38,7 @@ export default function EditUserDialog({
   const { user } = useAuth();
   const isCurrentUser = user?.userID === userData?.userID;
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [calendarSetupOpen, setCalendarSetupOpen] = useState(false);
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
   const [reactivateDialogOpen, setReactivateDialogOpen] = useState(false);
 
@@ -132,11 +134,14 @@ export default function EditUserDialog({
   const targetRank = getUserRank(userData);
   const canManageUser = !isCurrentUser && userData?.isActive && actorRank > targetRank;
   const canReactivate = !isCurrentUser && !userData?.isActive && !!userData?.deactivatedAt && actorRank > targetRank;
+  const canManageCalendar = userData?.role === "physician" && userData?.isActive && actorRank >= 2;
 
   return (
     <>
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>Edit User Details</DialogTitle>
+        <DialogTitle>
+        Edit User Details
+      </DialogTitle>
         <Divider />
         <DialogContent>
           <Grid container spacing={2}>
@@ -229,9 +234,7 @@ export default function EditUserDialog({
         </DialogContent>
         <DialogActions sx={{ justifyContent: "space-between" }}>
           <Grid sx={{ display: "flex", gap: 1 }}>
-            {userData?.role === "physician" &&
-              !userData?.calendarID &&
-              editMode && (
+            {canManageCalendar && !userData?.calendarID && (
                 <Button
                   disabled={submitting}
                   onClick={handleCreateCalendar}
@@ -240,9 +243,7 @@ export default function EditUserDialog({
                   Create Calendar
                 </Button>
               )}
-            {userData?.role === "physician" &&
-              userData?.calendarID &&
-              editMode && (
+            {canManageCalendar && userData?.calendarID && (
                 <Button
                   onClick={() => setColorPickerOpen(true)}
                   variant="outlined"
@@ -304,7 +305,13 @@ export default function EditUserDialog({
             )}
           </Grid>
         </DialogActions>
-        <CalendarColorPicker
+        <CalendarSetupDialog
+        open={calendarSetupOpen}
+        onClose={() => setCalendarSetupOpen(false)}
+        user={userData}
+        onUpdated={onUpdated}
+      />
+      <CalendarColorPicker
           open={colorPickerOpen}
           onClose={() => setColorPickerOpen(false)}
           user={userData}

@@ -6,3 +6,9 @@
 .ag-cell-no-focus {
   border: none !important; /* removing border when clicking on individual cells */
 }
+
+.ag-cell {
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}

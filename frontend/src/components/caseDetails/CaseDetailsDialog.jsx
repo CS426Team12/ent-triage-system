@@ -157,8 +157,17 @@ export const CaseDetailsDialog = ({ open, onClose, caseData, onUpdated }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
-      <DialogTitle>
-        <Typography sx={{ fontWeight: 600 }}>Case View</Typography>
+      <DialogTitle sx={{ pb: 1.5 }}>
+        <Box display="flex" alignItems="center" gap={1.5}>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+              {formData.firstName} {formData.lastName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Case ID: {caseData?.caseID}
+            </Typography>
+          </Box>
+        </Box>
       </DialogTitle>
       <Divider />
       <Tabs

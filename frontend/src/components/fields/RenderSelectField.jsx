@@ -5,9 +5,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
 } from "@mui/material";
-import theme, { URGENCY_COLORS, APP_COLORS } from "../../theme";
+import UrgencyPill from "../common/UrgencyPill";
 
 export default function RenderSelectField({
   editMode,
@@ -21,29 +20,26 @@ export default function RenderSelectField({
   // Two Types of select fields: with chips (urgencies) or normal text dropdown
   if (!editMode) {
     return (
-      <Box>
-        <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 0.5 }}>
+      <Box sx={{ pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+            fontSize: "0.62rem",
+            color: "text.secondary",
+          }}
+        >
           {label}
         </Typography>
         {renderChip ? (
-          <Chip
-            key={formik.values[fieldName]}
-            label={
-              options.find((o) => o.value === formik.values[fieldName])
-                ?.label || "---"
-            }
-            sx={{
-              backgroundColor: URGENCY_COLORS[formik.values[fieldName]] ?? APP_COLORS.neutral[500],
-              color: theme.palette.getContrastText(
-                URGENCY_COLORS[formik.values[fieldName]] ?? APP_COLORS.neutral[500],
-              ),
-              fontWeight: 500,
-            }}
-          />
+          <Box mt={0.5}>
+            <UrgencyPill value={formik.values[fieldName]} />
+          </Box>
         ) : (
-          <Typography variant="body2">
-            {options.find((o) => o.value === formik.values[fieldName])?.label ||
-              "---"}
+          <Typography variant="body2" sx={{ mt: 0.25, color: "text.primary" }}>
+            {options.find((o) => o.value === formik.values[fieldName])?.label || "—"}
           </Typography>
         )}
       </Box>
@@ -63,14 +59,7 @@ export default function RenderSelectField({
         error={formik.touched[fieldName] && Boolean(formik.errors[fieldName])}
         renderValue={(selected) =>
           renderChip ? (
-            <Chip
-              label={options.find((o) => o.value === selected)?.label || "---"}
-              sx={{
-                backgroundColor: URGENCY_COLORS[selected] ?? APP_COLORS.neutral[500],
-                color: theme.palette.getContrastText(URGENCY_COLORS[selected] ?? APP_COLORS.neutral[500]),
-                fontWeight: 500,
-              }}
-            />
+            <UrgencyPill value={selected} />
           ) : (
             options.find((o) => o.value === selected)?.label || selected
           )

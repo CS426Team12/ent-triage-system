@@ -13,6 +13,7 @@ export const SchedulingForm = ({
   onDurationChange,
   errors = {},
   submitting,
+  currentUserID,
 }) => (
   <Box display="flex" flexDirection="column" gap={2}>
     <PhysicianSelect
@@ -21,6 +22,7 @@ export const SchedulingForm = ({
       onChange={onPhysicianChange}
       error={errors.physicianID}
       disabled={submitting}
+      currentUserID={currentUserID}
     />
     <DatePicker
       label="Appointment Date"

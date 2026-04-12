@@ -1,9 +1,10 @@
 import React from "react";
-import { Chip, IconButton, Box } from "@mui/material";
+import { IconButton, Box, Typography } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 import dayjs from "dayjs";
-import { URGENCY_PRIORITY, URGENCY_LABELS } from "../utils/consts";
-import theme, { URGENCY_COLORS } from "../theme";
+import { URGENCY_PRIORITY } from "../utils/consts";
+import UrgencyPill from "../components/common/UrgencyPill";
+import { AIBadge } from "../components/common/SourceBadge";
 import { CaseDetailsDialog } from "../components/caseDetails/CaseDetailsDialog";
 import EditUserDialog from "../components/admin/EditUserDialog";
 import { userService } from "../api/userService";
@@ -13,19 +14,40 @@ import { UrgencyChangeIndicator } from "../components/UrgencyChangeIndicator";
 export const UrgencyCellRenderer = (params) => {
   if (!params.value) return null;
 
-  const label = URGENCY_LABELS[params.value];
-  const color = URGENCY_COLORS[params.value];
+  const { AIUrgency, overrideUrgency } = params.data;
 
   return (
-    <Chip
-      label={label}
-      size="medium"
-      sx={{
-        backgroundColor: color,
-        color: theme.palette.getContrastText(color),
-        fontWeight: "bold",
-        fontSize: "0.75rem",
-      }}
+    <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+      <UrgencyPill value={params.value} />
+      <UrgencyChangeIndicator
+        prevUrgency={AIUrgency}
+        currentUrgency={overrideUrgency || AIUrgency}
+        compact
+      />
+    </Box>
+  );
+};
+
+export const SummaryCellRenderer = (params) => {
+  const { overrideSummary, AISummary } = params.data;
+  const summary = overrideSummary || AISummary;
+  const isAI = !overrideSummary;
+
+  return (
+    <span>
+      {summary}
+      {isAI && <AIBadge sx={{ marginLeft: 1 }} />}
+    </span>
+  );
+};
+
+export const UrgencyChangeCellRenderer = (params) => {
+  const { AIUrgency, overrideUrgency } = params.data;
+  return (
+    <UrgencyChangeIndicator
+      prevUrgency={AIUrgency}
+      currentUrgency={overrideUrgency || AIUrgency}
+      compact
     />
   );
 };
@@ -97,14 +119,6 @@ export const EditUserButtonCellRenderer = (params) => {
       />
     </>
   );
-};
-
-export const UrgencyChangeCellRenderer = (params) => {
-  const { previousUrgency, overrideUrgency, AIUrgency } = params.data;
-  const current = overrideUrgency || AIUrgency;
-  const prev = previousUrgency || AIUrgency;
-
-  return <UrgencyChangeIndicator prevUrgency={prev} currentUrgency={current} />;
 };
 
 export const ageValueGetter = (dob) => {

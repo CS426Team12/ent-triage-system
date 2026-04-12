@@ -2,6 +2,7 @@ import React from "react";
 import {
   Box,
   Grid,
+  Stack,
   Typography,
   TextField,
   Button,
@@ -9,6 +10,7 @@ import {
   Divider,
   Switch,
   FormControlLabel,
+  Paper,
 } from "@mui/material";
 import * as Yup from "yup";
 import dayjs from "dayjs";
@@ -20,6 +22,8 @@ import { SchedulingForm } from "./SchedulingForm";
 import { AvailabilityCalendar, addMinutes } from "./AvailabilityCalendar";
 import { AppointmentInfo } from "./AppointmentInfo";
 import { triageCaseService } from "../../../api/triageCaseService";
+import { useAuth } from "../../../context/AuthContext";
+import { SectionHeader } from "../SectionHeader";
 
 export const ScheduleTab = ({
   caseID,
@@ -28,6 +32,7 @@ export const ScheduleTab = ({
   handleClose,
   onUpdated,
 }) => {
+  const { user } = useAuth();
   const [physicians, setPhysicians] = React.useState([]);
   const [appointment, setAppointment] = React.useState(null);
   const [loadingAppointment, setLoadingAppointment] = React.useState(false);
@@ -334,6 +339,7 @@ export const ScheduleTab = ({
     onDurationChange: handleDurationChange,
     errors,
     submitting,
+    currentUserID: user?.userID,
   };
 
   const availabilityProps = {
@@ -353,42 +359,42 @@ export const ScheduleTab = ({
   if (isUnreviewed) {
     return (
       <Box display="flex" flexDirection="column" gap={3}>
-        <Typography variant="h8" sx={{ fontWeight: 600 }}>
-          Review Details
-        </Typography>
-        <TextField
-          fullWidth
-          multiline
-          rows={4}
-          label="Review Reason *"
-          placeholder="Describe the review..."
-          value={reviewReason}
-          onChange={(e) => setReviewReason(e.target.value)}
-          error={!!errors.reviewReason}
-          helperText={errors.reviewReason}
-          disabled={submitting}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={scheduleAppt}
-              onChange={handleToggleSchedule}
+        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+          <SectionHeader>Review Details</SectionHeader>
+          <Stack spacing={2}>
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              label="Review Reason *"
+              placeholder="Describe the review..."
+              value={reviewReason}
+              onChange={(e) => setReviewReason(e.target.value)}
+              error={!!errors.reviewReason}
+              helperText={errors.reviewReason}
               disabled={submitting}
             />
-          }
-          label={
-            <Typography variant="body2">Schedule an appointment</Typography>
-          }
-        />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={scheduleAppt}
+                  onChange={handleToggleSchedule}
+                  disabled={submitting}
+                />
+              }
+              label={
+                <Typography variant="body2">Schedule an appointment</Typography>
+              }
+            />
+          </Stack>
+        </Paper>
         {scheduleAppt && (
           <Grid container spacing={4}>
             <Grid>
-              <Typography variant="h8" sx={{ fontWeight: 600 }}>
-                Appointment Details
-              </Typography>
-              <Box mt={2}>
+              <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+                <SectionHeader>Appointment Details</SectionHeader>
                 <SchedulingForm {...schedulingFormProps} />
-              </Box>
+              </Paper>
             </Grid>
             <Box
               sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}
@@ -419,111 +425,111 @@ export const ScheduleTab = ({
   // reviewed, has appointment
   if (hasAppointment) {
     return (
-      <Box display="flex" flexDirection="column" gap={3}>
-        <Typography variant="h8" sx={{ fontWeight: 600 }}>
-          Scheduled Appointment
-        </Typography>
-        {loadingAppointment ? (
-          <CircularProgress size={20} />
-        ) : (
-          <AppointmentInfo appointment={appointment} />
-        )}
-        {!isAppointmentInPast && (
-          <Box display="flex" flexDirection="column" gap={1}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showRescheduleForm}
-                  onChange={handleToggleReschedule}
-                  disabled={showCancelForm || submitting}
-                />
-              }
-              label={<Typography variant="body2">Reschedule</Typography>}
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showCancelForm}
-                  onChange={(e) => {
-                    setShowCancelForm(e.target.checked);
-                    setShowRescheduleForm(false);
-                  }}
-                  disabled={showRescheduleForm || submitting}
-                />
-              }
-              label={
-                <Typography variant="body2">Cancel appointment</Typography>
-              }
-            />
-          </Box>
-        )}
-        {showCancelForm && (
-          <>
-            <Divider />
-            <Typography variant="h8" sx={{ fontWeight: 600 }}>
-              Cancel Appointment
-            </Typography>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              label="Cancellation Reason *"
-              value={cancelReason}
-              disabled={submitting}
-              onChange={(e) => setCancelReason(e.target.value)}
-              error={!!errors.cancelReason}
-              helperText={errors.cancelReason}
-            />
-          </>
-        )}
-        {showRescheduleForm && (
-          <>
-            <Divider />
-            <Typography variant="h8" sx={{ fontWeight: 600 }}>
-              Reschedule Appointment
-            </Typography>
-            <Grid container spacing={4}>
-              <Grid>
-                <SchedulingForm {...schedulingFormProps} />
-              </Grid>
-              <Box
-                sx={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                }}
-              >
-                <AvailabilityCalendar {...availabilityProps} />
-              </Box>
-            </Grid>
-          </>
-        )}
-        <Divider />
-        <Box display="flex" justifyContent="flex-end" gap={1}>
+      <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+        <SectionHeader>Scheduled Appointment</SectionHeader>
+        <Box display="flex" flexDirection="column" gap={2}>
+          {loadingAppointment ? (
+            <CircularProgress size={20} />
+          ) : (
+            <AppointmentInfo appointment={appointment} />
+          )}
+          {!isAppointmentInPast && (
+            <Box display="flex" flexDirection="column" gap={1}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showRescheduleForm}
+                    onChange={handleToggleReschedule}
+                    disabled={showCancelForm || submitting}
+                  />
+                }
+                label={<Typography variant="body2">Reschedule</Typography>}
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showCancelForm}
+                    onChange={(e) => {
+                      setShowCancelForm(e.target.checked);
+                      setShowRescheduleForm(false);
+                    }}
+                    disabled={showRescheduleForm || submitting}
+                  />
+                }
+                label={
+                  <Typography variant="body2">Cancel appointment</Typography>
+                }
+              />
+            </Box>
+          )}
           {showCancelForm && (
-            <Button
-              variant="contained"
-              disabled={submitting}
-              onClick={handleSubmitCancel}
-            >
-              Cancel Appointment
-            </Button>
+            <Box display="flex" flexDirection="column" gap={2}>
+              <Divider />
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Cancel Appointment
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                label="Cancellation Reason *"
+                value={cancelReason}
+                disabled={submitting}
+                onChange={(e) => setCancelReason(e.target.value)}
+                error={!!errors.cancelReason}
+                helperText={errors.cancelReason}
+              />
+            </Box>
           )}
           {showRescheduleForm && (
-            <Button
-              variant="contained"
-              disabled={submitting}
-              onClick={handleSubmitReschedule}
-            >
-              Reschedule Appointment
-            </Button>
+            <Box display="flex" flexDirection="column" gap={2}>
+              <Divider />
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Reschedule Appointment
+              </Typography>
+              <Grid container spacing={4}>
+                <Grid>
+                  <SchedulingForm {...schedulingFormProps} />
+                </Grid>
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                  }}
+                >
+                  <AvailabilityCalendar {...availabilityProps} />
+                </Box>
+              </Grid>
+            </Box>
           )}
-          <Button onClick={handleClose} disabled={submitting}>
-            Close
-          </Button>
+          <Divider />
+          <Box display="flex" justifyContent="flex-end" gap={1}>
+            {showCancelForm && (
+              <Button
+                variant="contained"
+                disabled={submitting}
+                onClick={handleSubmitCancel}
+              >
+                Cancel Appointment
+              </Button>
+            )}
+            {showRescheduleForm && (
+              <Button
+                variant="contained"
+                disabled={submitting}
+                onClick={handleSubmitReschedule}
+              >
+                Reschedule Appointment
+              </Button>
+            )}
+            <Button onClick={handleClose} disabled={submitting}>
+              Close
+            </Button>
+          </Box>
         </Box>
-      </Box>
+      </Paper>
     );
   }
 
@@ -546,12 +552,10 @@ export const ScheduleTab = ({
     <Box display="flex" flexDirection="column" gap={3}>
       <Grid container spacing={4}>
         <Grid>
-          <Typography variant="h8" sx={{ fontWeight: 600 }}>
-            Appointment Details
-          </Typography>
-          <Box mt={2}>
+          <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+            <SectionHeader>Appointment Details</SectionHeader>
             <SchedulingForm {...schedulingFormProps} />
-          </Box>
+          </Paper>
         </Grid>
         <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
           <AvailabilityCalendar {...availabilityProps} />

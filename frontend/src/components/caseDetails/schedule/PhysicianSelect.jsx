@@ -14,6 +14,7 @@ export const PhysicianSelect = ({
   onChange,
   error,
   disabled,
+  currentUserID,
 }) => (
   <FormControl fullWidth error={!!error}>
     <InputLabel>Physician</InputLabel>
@@ -34,7 +35,7 @@ export const PhysicianSelect = ({
             }}
           >
             <Typography variant="body2" fontWeight={600}>
-              Dr. {p.firstName} {p.lastName}
+              Dr. {p.firstName} {p.lastName}{p.userID === currentUserID ? " (You)" : ""}
             </Typography>
             {!p.calendarID && (
               <Typography variant="caption" sx={{ ml: 2, fontStyle: "italic" }}>

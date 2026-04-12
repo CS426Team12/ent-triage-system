@@ -1,33 +1,23 @@
 import {
   UrgencyCellRenderer,
+  SummaryCellRenderer,
   urgencyComparator,
   dateTimeFormatter,
-  EditCaseButtonCellRenderer,
   concatNameValueGetter,
-  UrgencyChangeCellRenderer,
 } from '../gridUtils';
 
-export const unreviewedColDefs = (onCaseUpdated) => [
-  {
-    headerName: 'Change',
-    colId: "change",
-    filter: false,
-    sortable: false,
-    cellRenderer: UrgencyChangeCellRenderer,
-    flex: 0.25,
-    minWidth: 100,
-  },
+export const unreviewedColDefs = () => [
   {
     headerName: 'Urgency',
-    flex: 1, // flex determines the proportion the column will take up
-    minWidth: 150, // set minimum width to create overflow on smaller window sizes
+    flex: 1,
+    minWidth: 150,
     cellRenderer: UrgencyCellRenderer,
     filter: 'agTextColumnFilter',
     comparator: urgencyComparator,
     sort: "asc",
     valueGetter: (params) => {
       return params.data.overrideUrgency || params.data.AIUrgency;
-    }
+    },
   },
   {
     headerName: 'Name',
@@ -42,8 +32,8 @@ export const unreviewedColDefs = (onCaseUpdated) => [
   {
     headerName: 'Date Created',
     field: 'dateCreated',
-    flex: 0.75,
-    minWidth: 200,
+    flex: 0.6,
+    minWidth: 140,
     valueFormatter: dateTimeFormatter,
     filter: 'agDateColumnFilter',
   },
@@ -51,6 +41,7 @@ export const unreviewedColDefs = (onCaseUpdated) => [
     headerName: 'Summary',
     flex: 6,
     minWidth: 300,
+    cellRenderer: SummaryCellRenderer,
     tooltipValueGetter: (params) => {
       return params.data.overrideSummary || params.data.AISummary;
     },
@@ -58,13 +49,5 @@ export const unreviewedColDefs = (onCaseUpdated) => [
     valueGetter: (params) => {
       return params.data.overrideSummary || params.data.AISummary;
     },
-  },
-  {
-    headerName: 'Edit',
-    flex: 0.5,
-    minWidth: 100,
-    cellRenderer: EditCaseButtonCellRenderer,
-    cellRendererParams: { onCaseUpdated },
-    sortable: false,
   },
 ];

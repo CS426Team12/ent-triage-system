@@ -17,7 +17,7 @@ export const URGENCY_COLORS = {
 };
 
 export const TABLE_COLORS = {
-  headerBackground: deepPurple[200],
+  headerBackground: deepPurple[100],
   background: deepPurple[50],
   rowHover: deepPurple[100],
 };

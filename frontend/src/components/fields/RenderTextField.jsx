@@ -18,11 +18,22 @@ export default function RenderTextField({
       displayValue = dayjs(displayValue).format("MM/DD/YYYY, h:mm A");
     }
     return (
-      <Box>
-        <Typography variant="subtitle2" color="textSecondary">
+      <Box sx={{ pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+            fontSize: "0.62rem",
+            color: "text.secondary",
+          }}
+        >
           {label}
         </Typography>
-        <Typography variant="body2">{displayValue || "---"}</Typography>
+        <Typography variant="body2" sx={{ mt: 0.25, color: "text.primary" }}>
+          {displayValue || "—"}
+        </Typography>
       </Box>
     );
   }
@@ -31,7 +42,8 @@ export default function RenderTextField({
     fieldName === "aiSummary" ||
     fieldName === "clinicNotes" ||
     fieldName === "overrideSummary" ||
-    fieldName === "caseResolutionReason";
+    fieldName === "caseResolutionReason" ||
+    fieldName === "clinicianNotes";
 
   return (
     <TextField
