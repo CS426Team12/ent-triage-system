@@ -127,9 +127,14 @@ export const Calendar = () => {
             <Box sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <Box>
-                  <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
-                    Schedule
-                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <CalendarMonth
+                      sx={{ fontSize: 24, color: "primary.main" }}
+                    />
+                    <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
+                      Schedule
+                    </Typography>
+                  </Stack>
                   <Typography variant="body2" color="text.secondary">
                     View and manage physician appointments
                   </Typography>

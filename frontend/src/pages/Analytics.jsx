@@ -8,6 +8,7 @@ import {
   CardContent,
   Paper,
   Tooltip as MuiTooltip,
+  Stack,
 } from "@mui/material";
 import {
   BarChart,
@@ -21,6 +22,7 @@ import {
   Cell,
   ResponsiveContainer,
 } from "recharts";
+import { Insights } from "@mui/icons-material";
 import { analyticsService } from "../api/analyticsService";
 import {
   ANALYTICS_KPIS,
@@ -129,11 +131,17 @@ export default function Analytics() {
                 borderColor: "divider",
                 borderRadius: 2,
                 overflow: "hidden",
-              }}>
-              <Box sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
-                <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
-                  Analytics
-                </Typography>
+              }}
+            >
+              <Box
+                sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Insights sx={{ fontSize: 24, color: "primary.main" }} />
+                  <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
+                    Analytics
+                  </Typography>
+                </Stack>
                 <Typography variant="body2" color="text.secondary">
                   AI performance metrics and feedback trends
                 </Typography>
@@ -141,7 +149,12 @@ export default function Analytics() {
               <Box sx={{ p: 3 }}>
                 <Box display="flex" gap={2} sx={{ mb: 3 }}>
                   {kpis.map((item, i) => (
-                    <KpiCard key={i} label={item.label} value={item.value} tooltip={item.tooltip} />
+                    <KpiCard
+                      key={i}
+                      label={item.label}
+                      value={item.value}
+                      tooltip={item.tooltip}
+                    />
                   ))}
                 </Box>
 
@@ -156,7 +169,8 @@ export default function Analytics() {
                         <ResponsiveContainer width="80%" height="80%">
                           <BarChart
                             data={overrideData || []}
-                            margin={{ top: 4, right: 4, left: 4, bottom: 40 }}>
+                            margin={{ top: 4, right: 4, left: 4, bottom: 40 }}
+                          >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               dataKey="name"
@@ -186,13 +200,15 @@ export default function Analytics() {
                         </Typography>
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart
-                            margin={{ top: 40, right: 4, left: 4, bottom: 40 }}>
+                            margin={{ top: 40, right: 4, left: 4, bottom: 40 }}
+                          >
                             <Pie
                               data={ratingData || []}
                               dataKey="value"
                               nameKey="name"
                               outerRadius="80%"
-                              label>
+                              label
+                            >
                               {ratingData?.map((entry, index) => (
                                 <Cell
                                   key={index}
@@ -208,7 +224,7 @@ export default function Analytics() {
                       </CardContent>
                     </Card>
                   </Grid>
-                  
+
                   {/* Tag Bar Chart */}
                   <Grid item xs={12}>
                     <Card sx={{ height: 350 }}>
@@ -219,7 +235,8 @@ export default function Analytics() {
                         <ResponsiveContainer width="80%" height="80%">
                           <BarChart
                             data={tagData}
-                            margin={{ top: 4, right: 4, left: 4, bottom: 80 }}>
+                            margin={{ top: 4, right: 4, left: 4, bottom: 80 }}
+                          >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               dataKey="name"

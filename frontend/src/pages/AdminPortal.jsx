@@ -16,6 +16,7 @@ import CreateUserDialog from "../components/admin/CreateUserDialog";
 import EditUserDialog from "../components/admin/EditUserDialog";
 import { userService } from "../api/userService";
 import { toast } from "../utils/toast";
+import { SupervisorAccount } from "@mui/icons-material";
 
 export default function AdminPortal() {
   const [users, setUsers] = useState([]);
@@ -85,7 +86,9 @@ export default function AdminPortal() {
   return (
     <>
       <Navbar />
-      <Box sx={{ bgcolor: "background.default", minHeight: "calc(100vh - 65px)" }}>
+      <Box
+        sx={{ bgcolor: "background.default", minHeight: "calc(100vh - 65px)" }}
+      >
         <Box sx={{ p: 3 }}>
           <Paper
             elevation={0}
@@ -98,12 +101,23 @@ export default function AdminPortal() {
               flexDirection: "column",
             }}
           >
-            <Box sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box
+              sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}
+            >
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+              >
                 <Box>
-                  <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
-                    User Management
-                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <SupervisorAccount
+                      sx={{ fontSize: 24, color: "primary.main" }}
+                    />
+                    <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
+                      User Management
+                    </Typography>
+                  </Stack>
                   <Typography variant="body2" color="text.secondary">
                     Create and manage system users
                   </Typography>
@@ -120,7 +134,12 @@ export default function AdminPortal() {
             <Tabs
               value={activeTab}
               onChange={handleTabChange}
-              sx={{ borderBottom: 1, borderColor: "divider", bgcolor: "background.paper", px: 1 }}
+              sx={{
+                borderBottom: 1,
+                borderColor: "divider",
+                bgcolor: "background.paper",
+                px: 1,
+              }}
             >
               <Tab
                 label={

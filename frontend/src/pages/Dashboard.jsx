@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Grid,
   Typography,
   Box,
   Paper,
@@ -11,7 +10,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { Refresh } from "@mui/icons-material";
+import { Refresh, Assessment } from "@mui/icons-material";
 import SearchableDataGrid from "../components/grid/SearchableDataGrid";
 import { unreviewedColDefs } from "../utils/coldefs/unreviewedTriageCases";
 import { reviewedColDefs } from "../utils/coldefs/reviewedTriageCases";
@@ -119,7 +118,9 @@ export default function Dashboard() {
   return (
     <>
       <Navbar />
-      <Box sx={{ bgcolor: "background.default", minHeight: "calc(100vh - 65px)" }}>
+      <Box
+        sx={{ bgcolor: "background.default", minHeight: "calc(100vh - 65px)" }}
+      >
         <Box sx={{ p: 3 }}>
           <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
             <StatCard
@@ -127,11 +128,7 @@ export default function Dashboard() {
               value={unreviewedCases.length}
               color="primary.main"
             />
-            <StatCard
-              label="Urgent"
-              value={urgentCount}
-              color="error.main"
-            />
+            <StatCard label="Urgent" value={urgentCount} color="error.main" />
             <StatCard
               label="Semi-Urgent"
               value={semiUrgentCount}
@@ -154,12 +151,21 @@ export default function Dashboard() {
               flexDirection: "column",
             }}
           >
-            <Box sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box
+              sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}
+            >
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+              >
                 <Box>
-                  <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
-                    Triage Cases
-                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Assessment sx={{ fontSize: 24, color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
+                      Triage Cases
+                    </Typography>
+                  </Stack>
                   <Typography variant="body2" color="text.secondary">
                     Review and manage incoming patient triage cases
                   </Typography>
@@ -187,7 +193,12 @@ export default function Dashboard() {
             <Tabs
               value={activeTab}
               onChange={handleTabChange}
-              sx={{ borderBottom: 1, borderColor: "divider", bgcolor: "background.paper", px: 1 }}
+              sx={{
+                borderBottom: 1,
+                borderColor: "divider",
+                bgcolor: "background.paper",
+                px: 1,
+              }}
             >
               <Tab
                 label={
