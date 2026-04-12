@@ -121,7 +121,6 @@ export default function Dashboard() {
       <Navbar />
       <Box sx={{ bgcolor: "background.default", minHeight: "calc(100vh - 65px)" }}>
         <Box sx={{ p: 3 }}>
-          {/* Stat cards */}
           <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
             <StatCard
               label="Total Unreviewed"
@@ -144,8 +143,6 @@ export default function Dashboard() {
               color="success.main"
             />
           </Stack>
-
-          {/* Main table card */}
           <Paper
             elevation={0}
             sx={{
@@ -157,7 +154,6 @@ export default function Dashboard() {
               flexDirection: "column",
             }}
           >
-            {/* Header */}
             <Box sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -188,8 +184,6 @@ export default function Dashboard() {
                 </Stack>
               </Stack>
             </Box>
-
-            {/* Tabs */}
             <Tabs
               value={activeTab}
               onChange={handleTabChange}
@@ -224,8 +218,6 @@ export default function Dashboard() {
                 sx={{ textTransform: "none", fontWeight: 500 }}
               />
             </Tabs>
-
-            {/* Grid */}
             <Box sx={{ height: "65vh", p: 2 }}>
               {activeTab === 0 && (
                 <SearchableDataGrid
@@ -248,7 +240,6 @@ export default function Dashboard() {
             </Box>
           </Paper>
         </Box>
-
         <CaseDetailsDialog
           open={dialogOpen}
           onClose={handleDialogClose}

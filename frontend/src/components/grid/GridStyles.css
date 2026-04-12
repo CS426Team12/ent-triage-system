@@ -2,12 +2,13 @@
   display: none !important; /* removing sort order number */
 }
 
-.ag-cell {
-  display: flex !important;
-  align-items: center !important;
-}
-
 .ag-cell-focus,
 .ag-cell-no-focus {
   border: none !important; /* removing border when clicking on individual cells */
+}
+
+.ag-cell {
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
 }

@@ -17,7 +17,7 @@ export const UrgencyCellRenderer = (params) => {
   const { AIUrgency, overrideUrgency } = params.data;
 
   return (
-    <Box display="flex" alignItems="center" gap={0.5}>
+    <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
       <UrgencyPill value={params.value} />
       <UrgencyChangeIndicator
         prevUrgency={AIUrgency}
@@ -34,15 +34,10 @@ export const SummaryCellRenderer = (params) => {
   const isAI = !overrideSummary;
 
   return (
-    <Box display="flex" alignItems="center" gap={0.75} sx={{ width: "100%", overflow: "hidden" }}>
-      <Typography
-        variant="body2"
-        sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-      >
-        {summary}
-      </Typography>
-      {isAI && <AIBadge sx={{ flexShrink: 0 }} />}
-    </Box>
+    <span>
+      {summary}
+      {isAI && <AIBadge sx={{ marginLeft: 1 }} />}
+    </span>
   );
 };
 

@@ -17,30 +17,6 @@ import EditUserDialog from "../components/admin/EditUserDialog";
 import { userService } from "../api/userService";
 import { toast } from "../utils/toast";
 
-function StatCard({ label, value, color }) {
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        flex: 1,
-        p: 2,
-        border: "1px solid",
-        borderColor: "divider",
-        borderRadius: 2,
-        borderLeftWidth: 4,
-        borderLeftColor: color,
-      }}
-    >
-      <Typography variant="h4" fontWeight={700} color={color} lineHeight={1}>
-        {value}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-        {label}
-      </Typography>
-    </Paper>
-  );
-}
-
 export default function AdminPortal() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -52,6 +28,10 @@ export default function AdminPortal() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
   const fetchUsers = async () => {
     try {
@@ -101,8 +81,6 @@ export default function AdminPortal() {
 
   const activeUsers = useMemo(() => users.filter((u) => u.isActive), [users]);
   const inactiveUsers = useMemo(() => users.filter((u) => !u.isActive), [users]);
-  const physicianCount = useMemo(() => users.filter((u) => u.role === "physician").length, [users]);
-  const adminCount = useMemo(() => users.filter((u) => u.isAdmin).length, [users]);
 
   return (
     <>
@@ -120,7 +98,6 @@ export default function AdminPortal() {
               flexDirection: "column",
             }}
           >
-            {/* Header */}
             <Box sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -140,11 +117,9 @@ export default function AdminPortal() {
                 </Button>
               </Stack>
             </Box>
-
-            {/* Tabs */}
             <Tabs
               value={activeTab}
-              onChange={(_, v) => setActiveTab(v)}
+              onChange={handleTabChange}
               sx={{ borderBottom: 1, borderColor: "divider", bgcolor: "background.paper", px: 1 }}
             >
               <Tab
