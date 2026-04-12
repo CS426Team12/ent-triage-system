@@ -122,8 +122,8 @@ export default function Navbar() {
           <Divider />
           <Box sx={{ p: 1.5 }}>
             <Button
-              variant="outlined"
-              color="error"
+              variant="contained"
+              color="primary"
               fullWidth
               disableElevation
               size="small"

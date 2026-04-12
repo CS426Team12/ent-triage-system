@@ -135,19 +135,6 @@ export const dateTimeFormatter = (params) => {
   return dayjs(params.value).format("MM/DD/YYYY, h:mm A");
 };
 
-export const relativeDateFormatter = (params) => {
-  if (!params.value) return "";
-  const date = dayjs(params.value);
-  const now = dayjs();
-  if (date.isSame(now, "day")) {
-    const diffMins = now.diff(date, "minute");
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = now.diff(date, "hour");
-    return `${diffHours}h ago`;
-  }
-  return date.format("MM/DD/YYYY, h:mm A");
-};
-
 export const urgencyComparator = (a, b) => {
   return URGENCY_PRIORITY[a] - URGENCY_PRIORITY[b];
 };

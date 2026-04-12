@@ -1,7 +1,6 @@
 import {
   UrgencyCellRenderer,
   urgencyComparator,
-  relativeDateFormatter,
   dateTimeFormatter,
   concatNameValueGetter,
 } from '../gridUtils';
@@ -59,7 +58,7 @@ export const reviewedColDefs = () => [
     flex: 0.75,
     minWidth: 200,
     sort: "desc",
-    valueFormatter: relativeDateFormatter,
+    valueFormatter: dateTimeFormatter,
     filter: 'agDateColumnFilter',
   },
 ];

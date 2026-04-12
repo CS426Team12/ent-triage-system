@@ -134,6 +134,7 @@ export default function EditUserDialog({
   const targetRank = getUserRank(userData);
   const canManageUser = !isCurrentUser && userData?.isActive && actorRank > targetRank;
   const canReactivate = !isCurrentUser && !userData?.isActive && !!userData?.deactivatedAt && actorRank > targetRank;
+  const canManageCalendar = userData?.role === "physician" && userData?.isActive && actorRank >= 2;
 
   return (
     <>
@@ -233,9 +234,7 @@ export default function EditUserDialog({
         </DialogContent>
         <DialogActions sx={{ justifyContent: "space-between" }}>
           <Grid sx={{ display: "flex", gap: 1 }}>
-            {userData?.role === "physician" &&
-              !userData?.calendarID &&
-              editMode && (
+            {canManageCalendar && !userData?.calendarID && (
                 <Button
                   disabled={submitting}
                   onClick={handleCreateCalendar}
@@ -244,9 +243,7 @@ export default function EditUserDialog({
                   Create Calendar
                 </Button>
               )}
-            {userData?.role === "physician" &&
-              userData?.calendarID &&
-              editMode && (
+            {canManageCalendar && userData?.calendarID && (
                 <Button
                   onClick={() => setColorPickerOpen(true)}
                   variant="outlined"

@@ -2,7 +2,7 @@ import {
   UrgencyCellRenderer,
   SummaryCellRenderer,
   urgencyComparator,
-  relativeDateFormatter,
+  dateTimeFormatter,
   concatNameValueGetter,
 } from '../gridUtils';
 
@@ -34,7 +34,7 @@ export const unreviewedColDefs = () => [
     field: 'dateCreated',
     flex: 0.6,
     minWidth: 140,
-    valueFormatter: relativeDateFormatter,
+    valueFormatter: dateTimeFormatter,
     filter: 'agDateColumnFilter',
   },
   {

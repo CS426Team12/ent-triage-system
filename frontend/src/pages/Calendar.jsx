@@ -124,7 +124,6 @@ export const Calendar = () => {
               flexDirection: "column",
             }}
           >
-            {/* Header */}
             <Box sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -136,7 +135,6 @@ export const Calendar = () => {
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  {/* Physician filter pills */}
                   <Stack direction="row" spacing={1} flexWrap="wrap">
                     {data.physicians
                       .filter((p) => p.calendarID)
@@ -219,8 +217,6 @@ export const Calendar = () => {
                 </Stack>
               </Stack>
             </Box>
-
-            {/* Calendar body */}
             <Box sx={{ height: "75vh", p: 2 }}>
               {loading ? (
                 <Box
