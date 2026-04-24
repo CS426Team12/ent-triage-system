@@ -2,7 +2,7 @@ import axios from "axios";
 import { authService } from "./authService";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: "/api",
   withCredentials: true,
 });
 

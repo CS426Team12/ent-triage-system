@@ -7,8 +7,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     COOKIE_SECURE: bool = True
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    ALLOWED_ORIGINS: list = ["http://localhost:5173"]
-    
+    ALLOWED_ORIGINS: list = ["http://localhost:5173", "https://team12.unr.dev"]    
     REDIS_URL: str
     
     DB_USER: str
