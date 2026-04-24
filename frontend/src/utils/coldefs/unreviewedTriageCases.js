@@ -32,8 +32,8 @@ export const unreviewedColDefs = () => [
   {
     headerName: 'Date Created',
     field: 'dateCreated',
-    flex: 0.6,
-    minWidth: 140,
+    flex: 0.75,
+    minWidth: 180,
     valueFormatter: dateTimeFormatter,
     filter: 'agDateColumnFilter',
   },
