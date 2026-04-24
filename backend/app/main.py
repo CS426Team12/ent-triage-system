@@ -25,7 +25,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(root_path="/api")
 
 app.add_middleware(AuditMetadataMiddleware)
 
