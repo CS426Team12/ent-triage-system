@@ -15,6 +15,7 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    allowedHosts: ['team12.unr.dev', 'localhost', '127.0.0.1']
   },
   preview: {
     host: '0.0.0.0',
