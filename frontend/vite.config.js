@@ -15,5 +15,10 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 8080,
+    allowedHosts: ['team12.unr.dev', 'localhost', '127.0.0.1']
   }
 });
