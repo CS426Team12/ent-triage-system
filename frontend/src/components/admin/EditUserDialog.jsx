@@ -97,22 +97,6 @@ export default function EditUserDialog({
     onClose();
   };
 
-  const handleCreateCalendar = async () => {
-    try {
-      setSubmitting(true);
-      await calendarManagementService.createPhysicianCalendar(userData?.userID);
-      onUpdated();
-      toast.success("Calendar created successfully.");
-    } catch (error) {
-      toast.error("Failed to create calendar. Please try again.");
-      console.error(
-        "Failed to create calendar: " + (error.message || "Unknown error"),
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleConfirmDeactivate = async () => {
     setSubmitting(true);
     setDeactivateDialogOpen(false);
@@ -237,10 +221,10 @@ export default function EditUserDialog({
             {canManageCalendar && !userData?.calendarID && (
                 <Button
                   disabled={submitting}
-                  onClick={handleCreateCalendar}
+                  onClick={() => setCalendarSetupOpen(true)}
                   variant="contained"
                 >
-                  Create Calendar
+                  Setup Calendar
                 </Button>
               )}
             {canManageCalendar && userData?.calendarID && (
@@ -310,12 +294,16 @@ export default function EditUserDialog({
         onClose={() => setCalendarSetupOpen(false)}
         user={userData}
         onUpdated={onUpdated}
+        closeModalOnSave={handleClose}
       />
-      <CalendarColorPicker
+        <CalendarColorPicker
           open={colorPickerOpen}
-          onClose={() => setColorPickerOpen(false)}
+          onClose={() => {
+            setColorPickerOpen(false);
+          }}
           user={userData}
           onUpdated={onUpdated}
+          closeModalOnSave={handleClose}
         />
       </Dialog>
       <AlertDialog

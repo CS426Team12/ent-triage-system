@@ -42,6 +42,8 @@ export const reviewedColDefs = () => [
     tooltipValueGetter: (params) => {
       return params.data.reviewReason;
     },
+    wrapText: true,
+    autoHeight: true,
     filter: 'agTextColumnFilter',
     field: "reviewReason",
   },

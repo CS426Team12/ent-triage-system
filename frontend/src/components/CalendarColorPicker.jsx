@@ -28,7 +28,7 @@ const GCAL_COLORS = [
   { hex: "#d50000", label: "Tomato" },
 ];
 
-export const CalendarColorPicker = ({ open, onClose, user, onUpdated }) => {
+export const CalendarColorPicker = ({ open, onClose, user, onUpdated, closeModalOnSave }) => {
   const [savingColor, setSavingColor] = useState(null);
 
   const handleColorSelect = async (hex) => {
@@ -38,6 +38,7 @@ export const CalendarColorPicker = ({ open, onClose, user, onUpdated }) => {
       await calendarManagementService.updateCalendarColor(user.userID, hex);
       onUpdated?.();
       onClose();
+      closeModalOnSave();
       toast.success("Calendar color updated.");
     } catch (err) {
       toast.error("Failed to update color, please try again.");
