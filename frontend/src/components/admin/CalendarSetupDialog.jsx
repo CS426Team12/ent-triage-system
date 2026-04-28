@@ -15,7 +15,7 @@ import {
 import { calendarManagementService } from "../../api/calendarService";
 import { toast } from "../../utils/toast";
 
-export default function CalendarSetupDialog({ open, onClose, user, onUpdated }) {
+export default function CalendarSetupDialog({ open, onClose, user, onUpdated, closeModalOnSave }) {
   const [mode, setMode] = useState("create");
   const [calendarID, setCalendarID] = useState("");
   const [calendarIDError, setCalendarIDError] = useState("");
@@ -44,6 +44,7 @@ export default function CalendarSetupDialog({ open, onClose, user, onUpdated }) 
       }
       onUpdated();
       handleClose();
+      closeModalOnSave();
     } catch (err) {
       toast.error(
         mode === "create"
