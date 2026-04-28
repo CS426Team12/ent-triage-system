@@ -109,6 +109,7 @@ export default function EditUserDialog({
         "Failed to create calendar: " + (error.message || "Unknown error"),
       );
     } finally {
+      handleClose();
       setSubmitting(false);
     }
   };

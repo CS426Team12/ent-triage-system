@@ -41,13 +41,11 @@ export const unreviewedColDefs = () => [
     headerName: 'Summary',
     flex: 6,
     minWidth: 300,
+    wrapText: true,
+    autoHeight: true,
     cellRenderer: SummaryCellRenderer,
-    tooltipValueGetter: (params) => {
-      return params.data.overrideSummary || params.data.AISummary;
-    },
+    tooltipValueGetter: (params) => params.data.overrideSummary || params.data.AISummary,
     filter: 'agTextColumnFilter',
-    valueGetter: (params) => {
-      return params.data.overrideSummary || params.data.AISummary;
-    },
+    valueGetter: (params) => params.data.overrideSummary || params.data.AISummary,
   },
 ];
