@@ -9,8 +9,8 @@ import {
 export const unreviewedColDefs = () => [
   {
     headerName: 'Urgency',
-    flex: 1,
-    minWidth: 150,
+    flex: 0.75,
+    minWidth: 140,
     cellRenderer: UrgencyCellRenderer,
     filter: 'agTextColumnFilter',
     comparator: urgencyComparator,
